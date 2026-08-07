@@ -1,0 +1,3635 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5, user-scalable=yes">
+    <title>SMART RACK &middot; Inventory System</title>
+    <style>
+        :root {
+            --bg: #f4f7fc;
+            --surface: #ffffff;
+            --surface2: #f8fafc;
+            --border: #e2e8f0;
+            --text: #1e293b;
+            --text2: #64748b;
+            --accent: #3b82f6;
+            --accent-hover: #2563eb;
+            --shadow: 0 4px 20px rgba(0,0,0,0.04);
+        }
+
+        body.dark {
+            --bg: #0f172a;
+            --surface: #1e293b;
+            --surface2: #334155;
+            --border: #475569;
+            --text: #f8fafc;
+            --text2: #94a3b8;
+            --accent: #3b82f6;
+            --accent-hover: #60a5fa;
+            --shadow: 0 4px 20px rgba(0,0,0,0.25);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', system-ui, -apple-system, sans-serif; }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            padding: 1.5rem;
+            min-height: 100vh;
+            transition: background 0.2s, color 0.2s;
+        }
+
+        .wrap {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        /* Top Header */
+        .hdr {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.2rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .hdr h1 {
+            font-size: 1.6rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--text);
+        }
+
+        .hdr-r {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+        }
+
+        .srch {
+            position: relative;
+            min-width: 220px;
+        }
+
+        .srch input {
+            width: 100%;
+            padding: 0.6rem 1rem;
+            border-radius: 40px;
+            border: 1.5px solid var(--border);
+            background: var(--surface);
+            color: var(--text);
+            outline: none;
+            font-size: 0.9rem;
+            transition: 0.2s;
+        }
+
+        .srch input:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+        }
+
+        .ac {
+            position: absolute;
+            top: calc(100% + 6px);
+            left: 0;
+            right: 0;
+            background: var(--surface);
+            border-radius: 16px;
+            border: 1.5px solid var(--border);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+            max-height: 260px;
+            overflow-y: auto;
+            display: none;
+            z-index: 1000;
+        }
+
+        .ac-item {
+            padding: 0.65rem 1rem;
+            font-size: 0.85rem;
+            cursor: pointer;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .ac-item:hover {
+            background: var(--surface2);
+        }
+
+        .dk {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: 1.5px solid var(--border);
+            background: var(--surface);
+            color: var(--text);
+            font-size: 1.1rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: 0.2s;
+        }
+
+        .dk:hover {
+            transform: scale(1.08);
+        }
+
+        /* Top Page Navigation Bar */
+        .page-nav-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: var(--surface);
+            border: 1.5px solid var(--border);
+            border-radius: 18px;
+            padding: 0.5rem;
+            margin-bottom: 1.2rem;
+            box-shadow: var(--shadow);
+            flex-wrap: wrap;
+            gap: 0.6rem;
+        }
+
+        .nav-tabs {
+            display: flex;
+            gap: 6px;
+            background: var(--surface2);
+            padding: 4px;
+            border-radius: 14px;
+        }
+
+        .nav-tab-btn {
+            padding: 0.55rem 1.2rem;
+            border-radius: 10px;
+            border: none;
+            background: transparent;
+            color: var(--text2);
+            font-weight: 600;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .nav-tab-btn.active {
+            background: var(--surface);
+            color: var(--accent);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+        }
+
+        body.dark .nav-tab-btn.active {
+            background: var(--accent);
+            color: white;
+        }
+
+        .btn {
+            padding: 0.5rem 1rem;
+            border-radius: 12px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.15s;
+            border: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn-p {
+            background: var(--accent);
+            color: white;
+        }
+
+        .btn-p:hover {
+            background: var(--accent-hover);
+        }
+
+        .btn-o {
+            background: transparent;
+            border: 1.5px solid var(--border);
+            color: var(--text);
+        }
+
+        .btn-o:hover {
+            background: var(--surface2);
+        }
+
+        .btn-sm {
+            padding: 0.3rem 0.75rem;
+            font-size: 0.78rem;
+        }
+
+        .btn-danger {
+            background: #ef4444;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #dc2626;
+        }
+
+        /* Side-by-Side Desktop Layout */
+        .main-layout {
+            display: flex;
+            gap: 1.8rem;
+            align-items: flex-start;
+        }
+
+        .rack-pane {
+            flex: 0 0 380px;
+            position: sticky;
+            top: 1rem;
+        }
+
+        .inv-pane {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .rack {
+            background: var(--surface);
+            border: 1.5px solid var(--border);
+            border-radius: 20px;
+            padding: 1.2rem;
+            box-shadow: var(--shadow);
+        }
+
+        .rack-hdr {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .rack-hdr h2 {
+            font-size: 1.1rem;
+            font-weight: 700;
+        }
+
+        .led-badge {
+            font-size: 0.8rem;
+            background: var(--surface2);
+            padding: 0.25rem 0.8rem;
+            border-radius: 30px;
+            color: var(--text2);
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            border: 1px solid var(--border);
+        }
+
+        .led-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #94a3b8;
+        }
+
+        .led-dot.on {
+            background: var(--accent);
+            box-shadow: 0 0 9px var(--accent);
+        }
+
+        .rack-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+        }
+
+        .rc {
+            height: 56px;
+            background: var(--surface2);
+            border: 1.5px solid var(--border);
+            border-radius: 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.72rem;
+            font-weight: 600;
+            color: var(--text2);
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .rc .rc-led {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #cbd5e1;
+            margin-bottom: 2px;
+        }
+
+        .rc.act {
+            border-color: var(--accent);
+            background: rgba(59, 130, 246, 0.12);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+            transform: scale(1.03);
+            color: var(--text);
+        }
+
+        .rc.act .rc-led {
+            background: var(--accent);
+            box-shadow: 0 0 10px var(--accent);
+        }
+
+        .inv-hdr {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+            gap: 0.8rem;
+        }
+
+        .inv-hdr h2 {
+            font-size: 1.25rem;
+            font-weight: 700;
+        }
+
+        .inv-act {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .cnt {
+            background: var(--surface2);
+            border: 1.5px solid var(--border);
+            padding: 0.25rem 0.9rem;
+            border-radius: 40px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--text2);
+        }
+
+        .cats {
+            display: flex;
+            gap: 0.45rem;
+            flex-wrap: wrap;
+            margin-bottom: 1rem;
+        }
+
+        .cp {
+            padding: 0.25rem 0.85rem;
+            border-radius: 40px;
+            font-size: 0.78rem;
+            font-weight: 600;
+            border: 1.5px solid var(--border);
+            background: var(--surface2);
+            color: var(--text2);
+            cursor: pointer;
+            transition: 0.15s;
+        }
+
+        .cp.on {
+            background: var(--accent);
+            color: white;
+            border-color: var(--accent);
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+            gap: 1rem;
+        }
+
+        .card {
+            background: var(--surface);
+            border: 1.5px solid var(--border);
+            border-radius: 20px;
+            padding: 1rem 1.1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            box-shadow: var(--shadow);
+            transition: 0.15s;
+        }
+
+        .card:hover {
+            border-color: var(--accent);
+            box-shadow: 0 6px 16px rgba(59, 130, 246, 0.08);
+        }
+
+        .cn {
+            font-weight: 700;
+            font-size: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .ctag {
+            font-size: 0.65rem;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            background: var(--surface2);
+            padding: 0.15rem 0.55rem;
+            border-radius: 30px;
+            color: var(--text2);
+            font-weight: 600;
+        }
+
+        .ci {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.4rem;
+            font-size: 0.84rem;
+            color: var(--text2);
+        }
+
+        .low {
+            background: #fee2e2;
+            color: #b91c1c;
+            font-size: 0.7rem;
+            font-weight: 700;
+            padding: 0.12rem 0.5rem;
+            border-radius: 20px;
+        }
+
+        body.dark .low {
+            background: #450a0a;
+            color: #fca5a5;
+        }
+
+        .ca {
+            display: flex;
+            gap: 0.4rem;
+            justify-content: flex-end;
+            margin-top: 0.2rem;
+        }
+
+        /* Storage Hierarchy Manager Dedicated View */
+        .hierarchy-page {
+            background: var(--surface);
+            border: 2px solid var(--border);
+            border-radius: 24px;
+            padding: 1.5rem;
+            box-shadow: var(--shadow);
+        }
+
+        .box-unit {
+            background: var(--surface2);
+            border: 1.5px solid var(--border);
+            border-radius: 12px;
+            padding: 0.6rem 0.85rem;
+            transition: all 0.2s;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            min-height: 52px;
+        }
+
+        .box-unit:hover {
+            border-color: var(--accent);
+        }
+
+        .slots-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+            gap: 14px;
+        }
+
+        .slot-card {
+            background: var(--surface);
+            border: 2px solid var(--border);
+            border-radius: 16px;
+            padding: 1rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            min-height: 130px;
+        }
+
+        .dim-badge {
+            font-size: 0.72rem;
+            font-weight: 700;
+            background: var(--surface2);
+            color: var(--accent);
+            padding: 0.2rem 0.55rem;
+            border-radius: 20px;
+            border: 1px solid var(--border);
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+
+        .cap-bar-wrap {
+            background: var(--surface2);
+            border: 1.5px solid var(--border);
+            border-radius: 14px;
+            padding: 0.9rem 1.1rem;
+            margin-bottom: 1.2rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .cap-progress {
+            height: 10px;
+            background: #e2e8f0;
+            border-radius: 10px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        body.dark .cap-progress {
+            background: #334155;
+        }
+
+        .cap-fill {
+            height: 100%;
+            background: #3b82f6;
+            border-radius: 10px;
+            transition: width 0.3s;
+        }
+
+        /* Interactive 2D Drag & Draw Grid Canvas */
+        .canvas-container {
+            position: relative;
+            width: 100%;
+            height: 380px;
+            background: var(--surface);
+            border: 2.5px dashed var(--border);
+            border-radius: 20px;
+            overflow: hidden;
+            user-select: none;
+            touch-action: none;
+            margin-bottom: 1.4rem;
+            cursor: crosshair;
+            box-shadow: inset 0 2px 12px rgba(0,0,0,0.06);
+        }
+
+        .canvas-grid-lines {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+        }
+
+        .drawn-slot {
+            position: absolute;
+            background: rgba(59, 130, 246, 0.22);
+            border: 2px solid var(--accent);
+            border-radius: 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.76rem;
+            font-weight: 700;
+            color: var(--text);
+            padding: 4px;
+            transition: background 0.15s, border-color 0.15s, box-shadow 0.15s;
+            cursor: pointer;
+            overflow: hidden;
+            text-align: center;
+            z-index: 5;
+        }
+
+        .drawn-slot:hover {
+            background: rgba(59, 130, 246, 0.38);
+            border-color: #2563eb;
+            box-shadow: 0 6px 18px rgba(59, 130, 246, 0.3);
+            z-index: 15;
+        }
+
+        .drawn-slot.active-loc {
+            border-color: #facc15;
+            background: rgba(250, 204, 21, 0.35);
+            box-shadow: 0 0 20px rgba(250, 204, 21, 0.6);
+        }
+
+        .drag-box {
+            position: absolute;
+            background: rgba(16, 185, 129, 0.28);
+            border: 2px dashed #10b981;
+            border-radius: 8px;
+            pointer-events: none;
+            z-index: 20;
+        }
+
+        /* Modal Overlay */
+        .ov {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.55);
+            backdrop-filter: blur(4px);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+            padding: 1rem;
+        }
+
+        .ov.open {
+            display: flex;
+        }
+
+        .modal {
+            background: var(--surface);
+            border-radius: 24px;
+            padding: 2rem;
+            max-width: 480px;
+            width: 100%;
+            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.25);
+            max-height: 90vh;
+            overflow-y: auto;
+            color: var(--text);
+            border: 1.5px solid var(--border);
+        }
+
+        .modal h3 {
+            font-size: 1.25rem;
+            margin-bottom: 1.2rem;
+            font-weight: 700;
+        }
+
+        .fg {
+            margin-bottom: 0.9rem;
+        }
+
+        .fg label {
+            display: block;
+            font-size: 0.83rem;
+            font-weight: 600;
+            margin-bottom: 0.35rem;
+        }
+
+        .fg input, .fg select {
+            width: 100%;
+            padding: 0.65rem 0.9rem;
+            border: 1.5px solid var(--border);
+            border-radius: 10px;
+            font-size: 0.92rem;
+            background: var(--surface);
+            color: var(--text);
+            outline: none;
+            transition: 0.2s;
+        }
+
+        .fg input:focus, .fg select:focus {
+            border-color: var(--accent);
+        }
+
+        .mr {
+            display: flex;
+            gap: 0.7rem;
+        }
+
+        .mr .fg {
+            flex: 1;
+        }
+
+        .mb {
+            display: flex;
+            gap: 0.7rem;
+            justify-content: flex-end;
+            margin-top: 1.3rem;
+        }
+
+        #toast {
+            position: fixed;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #1e293b;
+            color: #fff;
+            padding: 0.6rem 1.6rem;
+            border-radius: 60px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+            opacity: 0;
+            pointer-events: none;
+            z-index: 3000;
+            transition: opacity 0.3s;
+            white-space: nowrap;
+        }
+
+        body.dark #toast {
+            background: #e2e8f0;
+            color: #0f172a;
+        }
+
+        #toast.show {
+            opacity: 1;
+        }
+
+        .canvas-container {
+            position: relative;
+            width: 100%;
+            height: 260px;
+            min-height: 200px;
+            max-height: 380px;
+            resize: vertical;
+            overflow: hidden;
+            background: var(--surface2);
+            border: 2px dashed var(--border);
+            border-radius: 18px;
+            box-sizing: border-box;
+            user-select: none;
+            touch-action: none;
+        }
+
+        .canvas-container::-webkit-resizer {
+            background-color: var(--accent);
+            border-radius: 4px;
+        }
+
+        .comp-stack-pane {
+            flex: 0 0 135px;
+            background: var(--surface);
+            border: 1.5px solid var(--border);
+            border-radius: 20px;
+            padding: 1rem 0.75rem;
+            box-shadow: var(--shadow);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.75rem;
+            height: fit-content;
+        }
+
+        .comp-bay {
+            width: 100%;
+            height: 85px;
+            border: 2px dashed var(--border);
+            border-radius: 14px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+            font-weight: 800;
+            color: var(--text2);
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            background: var(--surface2);
+            user-select: none;
+        }
+
+        .comp-bay:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        .comp-bay.glowing-active {
+            background: radial-gradient(circle, #fff7ed 0%, #facc15 60%, #eab308 100%) !important;
+            border: 3.5px solid #facc15 !important;
+            box-shadow: 0 0 32px rgba(250, 204, 21, 0.95), inset 0 0 18px #ffffff !important;
+            color: #000000 !important;
+            transform: scale(1.05);
+            z-index: 10;
+        }
+
+        @media(max-width: 950px) {
+            .main-layout {
+                flex-direction: column;
+            }
+            .rack-pane, .comp-stack-pane {
+                flex: none;
+                width: 100%;
+                position: static;
+            }
+            .comp-stack-pane {
+                flex-direction: row;
+                height: auto;
+            }
+            .comp-bay {
+                height: 70px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="wrap">
+        <div id="toast"></div>
+
+        <!-- Add / Edit Item Modal -->
+        <div class="ov" id="addEditModal">
+            <div class="modal">
+                <h3 id="mtitle">Add New Item</h3>
+                <div class="fg"><label>Item Name *</label><input id="fn" placeholder="e.g. Resistor 1kΩ"></div>
+                <div class="fg">
+                    <label>Category</label>
+                    <select id="fc">
+                        <option value="Electronics">Electronics</option>
+                        <option value="Resistor">Resistor</option>
+                        <option value="Capacitors">Capacitors</option>
+                        <option value="Active">Active</option>
+                        <option value="Passive">Passive</option>
+                        <option value="Connectors">Connectors</option>
+                        <option value="PCB">PCB</option>
+                        <option value="Debuggers">Debuggers</option>
+                        <option value="Cables">Cables</option>
+                        <option value="General Items">General Items</option>
+                    </select>
+                </div>
+                <div class="fg"><label>Quantity</label><input id="fq" type="number" min="0" value="1"></div>
+                <div class="fg" style="display:flex;align-items:center;gap:.5rem;">
+                    <input id="fns" type="checkbox" onchange="toggleNonSmart(this.checked)" style="width:auto;cursor:pointer;">
+                    <label for="fns" style="margin-bottom:0;cursor:pointer;">Non-smart item (Disable LEDs)</label>
+                </div>
+                <div class="fg" style="display:flex;align-items:center;gap:.5rem;">
+                    <input id="fret" type="checkbox" style="width:auto;cursor:pointer;">
+                    <label for="fret" style="margin-bottom:0;cursor:pointer;">Returnable Item (Meter / Tool)</label>
+                </div>
+                <div class="mr">
+                    <div class="fg"><label>Shelf</label><select id="fshelf" onchange="onFormShelfChange(this.value)"></select></div>
+                    <div class="fg"><label>Compartment</label><select id="fcomp" onchange="onFormCompChange(this.value)"></select></div>
+                </div>
+                <div class="mr">
+                    <div class="fg"><label>Box Container</label><select id="fbox" onchange="onFormBoxChange(this.value)"></select></div>
+                    <div class="fg" id="fslWrap"><label>Slot No.</label><select id="fsl"></select></div>
+                </div>
+
+                <div class="mb">
+                    <button class="btn btn-o" onclick="closeAddEditModal()">Cancel</button>
+                    <button class="btn btn-p" onclick="saveItem()">Save Item</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Add Element Modal (Shelf / Compartment / Box / Slot) -->
+        <div class="ov" id="elemModal">
+            <div class="modal">
+                <h3 id="elemModalTitle">Add New Element</h3>
+                <div class="fg">
+                    <label id="elemModalLabel">Element Name</label>
+                    <input id="elemNameInput" placeholder="e.g. Shelf 2 or Box 1">
+                </div>
+                <div id="elemShapeWrap" class="fg" style="display:none;">
+                    <label>Compartment Shape</label>
+                    <select id="elemShapeInput" style="padding:0.6rem 1rem; border-radius:12px; border:1.5px solid var(--border); background:var(--surface); color:var(--text); font-weight:600;">
+                        <option value="rect-h">▭ Rectangle (Horizontal / Wide)</option>
+                        <option value="rect-v">▯ Rectangle (Vertical / Tall)</option>
+                        <option value="square">🔲 Square</option>
+                    </select>
+                </div>
+                <div id="elemGridPosWrap" class="mr" style="display:none; gap:0.5rem; margin-top:0.6rem;">
+                    <div class="fg" style="flex:1;">
+                        <label>Grid Row (1-3)</label>
+                        <input id="elemGridRowInput" type="number" min="1" max="3" value="1">
+                    </div>
+                    <div class="fg" style="flex:1;">
+                        <label>Grid Column (1-4)</label>
+                        <input id="elemGridColInput" type="number" min="1" max="4" value="1">
+                    </div>
+                </div>
+                <div id="dimWrap" class="mr" style="display:none;">
+                    <div class="fg">
+                        <label id="elemWidthLabel">Width (cm)</label>
+                        <input id="elemWidthInput" type="number" min="1" value="10" oninput="updateDimCalcText()">
+                    </div>
+                    <div class="fg">
+                        <label id="elemLengthLabel">Length (cm)</label>
+                        <input id="elemLengthInput" type="number" min="1" value="10" oninput="updateDimCalcText()">
+                    </div>
+                </div>
+                <div id="dimCalcText" style="font-size:0.83rem; font-weight:600; color:var(--accent); margin-top:-0.3rem; margin-bottom:0.8rem; display:none;"></div>
+                <div class="mb">
+                    <button class="btn btn-o" onclick="closeElemModal()">Cancel</button>
+                    <button class="btn btn-p" onclick="submitElemModal()">Save</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Locate & Pick Quantity Modal -->
+        <div class="ov" id="locateModal">
+            <div class="modal">
+                <h3 style="display:flex;align-items:center;gap:.4rem;"><span style="color:#facc15;">💡</span> Locate & Pick Item</h3>
+                <div style="margin-top: 1rem; display: flex; flex-direction: column; gap: 1rem;">
+                    <div>
+                        <strong id="locItemName" style="font-size: 1.15rem; display: block;"></strong>
+                        <span id="locItemCat" class="ctag" style="margin-top: 4px; display: inline-block;"></span>
+                    </div>
+
+                    <div style="background:var(--surface2); border-radius:12px; padding:0.8rem; border:1px solid var(--border); display:flex; justify-content:space-between; align-items:center;">
+                        <span style="font-size:0.85rem; color:var(--text2);">Available Stock:</span>
+                        <span id="locAvailableStock" style="font-weight:700; font-size:1.05rem;"></span>
+                    </div>
+
+                    <div class="fg">
+                        <label>Quantity to Take</label>
+                        <div style="display: flex; gap: 0.5rem; align-items: center;">
+                            <button class="btn btn-o" onclick="adjustLocateQty(-1)">-</button>
+                            <input id="locateQtyInput" type="number" min="1" value="1" style="text-align: center; font-weight: 700; flex: 1;">
+                            <button class="btn btn-o" onclick="adjustLocateQty(1)">+</button>
+                            <button class="btn btn-o" onclick="setLocateQtyMax()" style="font-size:0.8rem;">Max</button>
+                        </div>
+                    </div>
+
+                    <div id="returnableFields" style="display: none; flex-direction: column; gap: 0.8rem; border-top: 1px solid var(--border); padding-top: 0.8rem;">
+                        <div class="fg" style="margin-bottom: 0;">
+                            <label>Borrower's Name *</label>
+                            <input id="borrowerNameInput" type="text" placeholder="e.g. John Doe">
+                        </div>
+                        <div class="fg" style="margin-bottom: 0;">
+                            <label>Expected Return Date *</label>
+                            <input id="returnDateInput" type="date">
+                        </div>
+                    </div>
+
+                    <div class="mb">
+                        <button class="btn btn-o" onclick="closeLocateModal()">Cancel</button>
+                        <button class="btn btn-p" onclick="confirmLocateDeduct()">Locate & Pick</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Top Header -->
+        <header class="hdr">
+            <h1>📦 SMART RACK SYSTEM</h1>
+            <div class="hdr-r">
+                <div class="srch" id="sw">
+                    <input type="text" id="si" placeholder="Search BOM or Slot..." autocomplete="off" oninput="onSearchInput(this.value)">
+                    <div class="ac" id="ac"></div>
+                </div>
+                <button class="dk" id="dkb" onclick="toggleDark()">🌙</button>
+            </div>
+        </header>
+
+        <!-- Top Navigation View Tabs Bar -->
+        <div class="page-nav-bar">
+            <div class="nav-tabs">
+                <button class="nav-tab-btn active" id="tab-main" onclick="switchPage('main')">
+                    📦 Main Dashboard 
+                </button>
+                <button class="nav-tab-btn" id="tab-hierarchy" onclick="switchPage('hierarchy')">
+                    🏗️ Storage Structure Manager (Shelf ➔ Compartment ➔ Box ➔ Slot)
+                </button>
+            </div>
+        </div>
+
+        <!-- PAGE 1: MAIN DASHBOARD PAGE -->
+        <div id="pageMain" class="main-layout">
+            <!-- Left Pane: 11x3 Physical Storage Rack -->
+            <div class="rack-pane">
+                <section class="rack">
+                    <div class="rack-hdr">
+                        <h2 id="rackTitle">📺 Storage Rack 11x3</h2>
+                        <div style="display:flex;align-items:center;gap:.6rem;">
+                            <label style="font-size:.8rem;font-weight:600;color:var(--text2)">Show box: </label>
+                            <select id="rack-box-select" onchange="changeRackBox(this.value)" style="padding:.25rem .5rem;border-radius:8px;border:1.5px solid var(--border);background:var(--surface);color:var(--text);font-weight:600;font-size:.8rem;outline:none;cursor:pointer;">
+                                <option value="0">All Boxes</option>
+                            </select>
+                            <div class="led-badge">
+                                <span class="led-dot" id="ldot"></span>
+                                <span id="lst">LED Off</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="rack-grid" id="rg"></div>
+                </section>
+            </div>
+
+            <!-- Right Pane: Full Inventory Management List -->
+            <div class="inv-pane">
+                <div class="inv-hdr">
+                    <h2>📦 Inventory Items</h2>
+                    <div class="inv-act">
+                        <span class="cnt" id="cb">0 items</span>
+                        <span class="cnt" id="connStatusPill" style="background:#dcfce7; color:#15803d; border-color:#86efac;">&#9729;&#65039; Google Sheet Connected</span>
+                        <button class="btn btn-o btn-sm" onclick="fetchInventory()">&#128260; Refresh</button>
+                        <button class="btn btn-o btn-sm esp-only-btn" style="display:none;" onclick="syncToCloud()" title="Upload local ESP items to Google Sheets">&#9729;&#65039; Sync Cloud (Upload)</button>
+                        <button class="btn btn-o btn-sm esp-only-btn" style="display:none;" onclick="fetchFromCloud()" title="Download Google Sheets items to ESP memory">&#128229; Fetch Cloud (Download)</button>
+                        <button class="btn btn-p btn-sm" onclick="openAddModal()">+ Add Item</button>
+                    </div>
+                </div>
+                <div class="cats" id="cf"></div>
+                <div class="grid" id="cg"></div>
+            </div>
+
+            <!-- Rightmost Pane: Physical Rack Compartments Visualizer (A, B, C, D) -->
+            <div class="comp-stack-pane" id="compStackPane"></div>
+        </div>
+
+        <!-- PAGE 2: STORAGE STRUCTURE MANAGER PAGE -->
+        <div id="pageHierarchy" class="hierarchy-page" style="display: none;">
+            <!-- Hierarchy Control Header -->
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.2rem; flex-wrap: wrap; gap: 0.8rem; border-bottom: 1.5px solid var(--border); padding-bottom: 1rem;">
+                <h2 style="font-size: 1.35rem; font-weight: 700;">🏗️ Storage Structure Manager</h2>
+                
+                <div style="display: flex; gap: 0.8rem; align-items: center; flex-wrap: wrap;">
+                    <div style="display: flex; align-items: center; gap: 0.35rem; background: var(--surface2); padding: 0.3rem 0.6rem; border-radius: 12px; border: 1.5px solid var(--border);">
+                        <label style="font-size: 0.82rem; font-weight: 700;">Shelf:</label>
+                        <select id="hShelfSelect" onchange="onHShelfChange(this.value)" style="padding:0.3rem 0.6rem; border-radius:8px; border:1px solid var(--border); background:var(--surface); color:var(--text); font-weight:600;"></select>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 0.35rem; background: var(--surface2); padding: 0.3rem 0.6rem; border-radius: 12px; border: 1.5px solid var(--border);">
+                        <label style="font-size: 0.82rem; font-weight: 700;">Compartment:</label>
+                        <select id="hCompSelect" onchange="onHCompChange(this.value)" style="padding:0.3rem 0.6rem; border-radius:8px; border:1px solid var(--border); background:var(--surface); color:var(--text); font-weight:600;"></select>
+                    </div>
+                </div>
+
+            <!-- Dynamic Content Area -->
+            <div id="hierarchyContent"></div>
+        </div>
+
+    </div>
+
+    <script>
+        (function () {
+            var items = [];
+            var activeId = null;
+            var srch = '';
+            var activeCat = 'All';
+            var selectedRackBox = 0;
+            var selectedHShelf = 'Shelf 1';
+            var selectedHComp = 'A';
+            var selectedHBox = null;
+            var editingItemId = null;
+            var locateItemData = null;
+            var currentPage = 'main';
+
+            // Element Modal State
+var elemModalType = ''; // 'shelf', 'comp', 'box', 'slot'
+            var pendingDrawnSlotCoords = null; // { x, y, w, l }
+
+            // Drag State for Canvas
+            var isCanvasDragging = false;
+            var dragStartGridX = 0;
+            var dragStartGridY = 0;
+
+            // Storage Structure Registry
+            var structRegistry = {
+                shelves: [
+                    { name: 'Shelf 1' }
+                ],
+                compartments: {
+                    'Shelf 1': []
+                },
+                boxes: {},
+                slots: {}
+            };
+
+            // Helpers for Shelf, Compartment, Box, and Slot Objects
+            function getBoxNum(val) {
+                if (val === undefined || val === null) return 1;
+                if (typeof val === 'number') return val;
+                var str = String(val);
+                var num = parseInt(str.replace(/[^0-9]/g, ''), 10);
+                return isNaN(num) || num <= 0 ? 1 : num;
+            }
+
+            function getSlotNum(val) {
+                if (val === undefined || val === null) return 1;
+                if (typeof val === 'number') return val;
+                var str = String(val);
+                var num = parseInt(str.replace(/[^0-9]/g, ''), 10);
+                return isNaN(num) || num <= 0 ? 1 : num;
+            }
+
+            function getShelfObj(sh) {
+                if (typeof sh === 'string') return { name: sh, w: 100, l: 40 };
+                return {
+                    name: sh.name || 'Shelf 1',
+                    w: Number(sh.w || 100),
+                    l: Number(sh.l || 40)
+                };
+            }
+
+            function cleanCompNameJS(val) {
+                var s = String(val || '').trim().toUpperCase();
+                var match = s.match(/(?:COMPARTMENT|COMP)\s*([A-Z])/i);
+                if (match) return match[1];
+                if (s.length === 1 && s >= 'A' && s <= 'Z') return s;
+                if (s === '1' || s === '3') return 'A';
+                if (s === '2' || s === '4') return 'B';
+                return s || 'A';
+            }
+
+            function getCompObj(co, idx) {
+                var rawName = typeof co === 'string' ? co : (co.name || 'A');
+                var name = cleanCompNameJS(rawName);
+                var defaultY = (name === 'B') ? 50 : (name === 'C' ? 25 : (name === 'D' ? 75 : 0));
+                if (typeof co === 'string') {
+                    return { name: name, x: 0, y: defaultY, w: 98, h: 45 };
+                }
+                var x = co.x !== undefined ? Number(co.x) : 0;
+                var y = co.y !== undefined ? Number(co.y) : defaultY;
+                var w = co.w !== undefined ? Number(co.w) : 98;
+                var h = co.h !== undefined ? Number(co.h) : 45;
+                return {
+                    name: name,
+                    x: Math.max(0, Math.min(100, x)),
+                    y: Math.max(0, Math.min(100, y)),
+                    w: Math.max(5, Math.min(100, w)),
+                    h: Math.max(5, Math.min(100, h))
+                };
+            }
+
+            function getBoxSpecJS(boxNum) {
+                var b = parseInt(boxNum, 10) || 1;
+                if (b >= 1 && b <= 10) {
+                    return { w: 33, l: 15, slotsCount: 33, rows: 11, cols: 3, slotW: 11, slotL: 1.36 };
+                } else if (b === 11 || b === 12) {
+                    return { w: 20, l: 10, slotsCount: 4, rows: 2, cols: 2, slotW: 10, slotL: 5 };
+                } else if (b >= 13 && b <= 15) {
+                    return { w: 18, l: 10, slotsCount: 6, rows: 2, cols: 3, slotW: 6, slotL: 5 };
+                } else if (b === 16 || b === 17) {
+                    return { w: 12, l: 21, slotsCount: 28, rows: 7, cols: 4, slotW: 3, slotL: 3 };
+                } else {
+                    return { w: 30, l: 20, slotsCount: 1, rows: 1, cols: 1, slotW: 30, slotL: 20 };
+                }
+            }
+
+            function getBoxSpecFromData(boxNum) {
+                var bNum = getBoxNum(boxNum);
+                var specDefault = getBoxSpecJS(bNum);
+                var boxObj = null;
+                var slotsList = [];
+
+                if (structRegistry) {
+                    if (structRegistry.boxes) {
+                        Object.keys(structRegistry.boxes).forEach(function(bKey) {
+                            var list = structRegistry.boxes[bKey] || [];
+                            var found = list.find(function(b) {
+                                var bName = typeof b === 'string' ? b : (b ? b.name : '');
+                                return getBoxNum(bName) === bNum;
+                            });
+                            if (found) {
+                                var wVal = typeof found === 'object' ? Number(found.w || 0) : 0;
+                                var lVal = typeof found === 'object' ? Number(found.l || 0) : 0;
+                                if (wVal > 0 && lVal > 0) {
+                                    boxObj = { name: 'Box ' + bNum, boxNum: bNum, w: wVal, l: lVal };
+                                }
+                            }
+                        });
+                    }
+                    if (structRegistry.slots) {
+                        Object.keys(structRegistry.slots).forEach(function(sKey) {
+                            var parts = sKey.split('->');
+                            var lastPart = parts[parts.length - 1] || sKey;
+                            if (getBoxNum(lastPart) === bNum) {
+                                if (Array.isArray(structRegistry.slots[sKey]) && structRegistry.slots[sKey].length > 0) {
+                                    if (structRegistry.slots[sKey].length > slotsList.length) {
+                                        slotsList = structRegistry.slots[sKey];
+                                    }
+                                }
+                            }
+                        });
+                    }
+                }
+
+                var w = boxObj ? boxObj.w : specDefault.w;
+                var l = boxObj ? boxObj.l : specDefault.l;
+                var slotsCount = slotsList.length || specDefault.slotsCount;
+                var slotW = 0;
+                var slotL = 0;
+
+                if (slotsList.length > 0) {
+                    var firstSlot = slotsList[0];
+                    if (typeof firstSlot === 'object' && firstSlot.w && firstSlot.l) {
+                        slotW = Number(firstSlot.w || 0);
+                        slotL = Number(firstSlot.l || 0);
+                    }
+                } else {
+                    slotW = specDefault.slotW;
+                    slotL = specDefault.slotL;
+                }
+
+                var cols = (slotW > 0 && w > 0) ? Math.max(1, Math.round(w / slotW)) : (specDefault.cols || 3);
+                var rows = cols > 0 ? Math.ceil(slotsCount / cols) : 0;
+                return {
+                    boxNum: bNum,
+                    name: 'Box ' + bNum,
+                    w: w,
+                    l: l,
+                    slotsCount: slotsCount,
+                    rows: rows,
+                    cols: cols,
+                    slotW: slotW,
+                    slotL: slotL
+                };
+            }
+
+            function getBoxObj(b) {
+                var rawName = typeof b === 'string' ? b : (b ? b.name : 'Box 1');
+                var bNum = getBoxNum(rawName || (b ? b.boxNum : 1));
+                return getBoxSpecFromData(bNum);
+            }
+
+            function getSlotObj(s) {
+                if (typeof s === 'string') return { name: s, x: 0, y: 0, w: 10, l: 10 };
+                return {
+                    name: s.name || 'Slot 1',
+                    x: Number(s.x || 0),
+                    y: Number(s.y || 0),
+                    w: Number(s.w || 10),
+                    l: Number(s.l || 10)
+                };
+            }
+
+            // Load saved structure registry if available
+            try {
+                var savedStruct = localStorage.getItem('smartrack_structure_v5');
+                if (savedStruct) {
+                    var parsed = JSON.parse(savedStruct);
+                    var isLegacy = false;
+                    if (parsed && parsed.boxes) {
+                        Object.keys(parsed.boxes).forEach(function(k) {
+                            var list = parsed.boxes[k] || [];
+                            list.forEach(function(b) {
+                                if (b.w === 22 || b.w === 0 || !b.w) {
+                                    isLegacy = true;
+                                }
+                            });
+                        });
+                    }
+                    if (isLegacy) {
+                        localStorage.removeItem('smartrack_structure_v5');
+                    } else {
+                        structRegistry = parsed;
+                    }
+                }
+            } catch(e) {}
+
+
+
+            function saveStructure() {
+                try {
+                    localStorage.setItem('smartrack_structure_v5', JSON.stringify(structRegistry));
+                } catch(e) {}
+            }
+
+            var dark = localStorage.getItem('smartrack_dark') === 'true' ||
+                (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
+
+            if (dark) document.body.classList.add('dark');
+            updDk(); if (typeof isESP !== "undefined" && isESP) { var espBtns = document.querySelectorAll(".esp-only-btn"); espBtns.forEach(function(b){ b.style.display="inline-block"; }); var p = document.getElementById("connStatusPill"); if (p) { p.innerHTML = "&#128230; ESP Local Storage Connected"; p.style.background="#e0f2fe"; p.style.color="#0369a1"; p.style.borderColor="#7dd3fc"; } } if (typeof isESP !== "undefined" && isESP) { var espBtns = document.querySelectorAll(".esp-only-btn"); espBtns.forEach(function(b){ b.style.display="inline-block"; }); var p = document.getElementById("connStatusPill"); if (p) { p.innerHTML = "&#128230; ESP Local Storage Connected"; p.style.background="#e0f2fe"; p.style.color="#0369a1"; p.style.borderColor="#7dd3fc"; } }
+
+            buildRackGrid();
+            fetchInventory();
+
+            function normalizeItem(raw) {
+                var id = Number(raw.id || 0);
+                var name = String(raw.name || raw.Name || raw.NAME || raw.Item || raw.item || raw.title || raw.description || raw.BOM || '').trim();
+                if (!name) name = 'Unnamed Component';
+                var category = String(raw.category || 'Electronics').trim();
+                var catLower = category.toLowerCase();
+                if (!category || catLower.indexOf('compartment') === 0 || catLower.indexOf('slot') === 0 || catLower.indexOf('box') === 0) {
+                    category = 'Electronics';
+                }
+                var quantity = Number(raw.quantity || 0);
+                var rawRow = Number(raw.row || 0);
+                var rawCol = Number(raw.col || 0);
+
+                var boxStr = String(raw.box || raw.boxNum || raw.boxnum || '1');
+                var rawBoxNum = parseInt(boxStr.replace(/[^0-9]/g, '')) || 1;
+
+                var subBoxStr = String(raw.subBox || raw.subbox || raw.slot || '1');
+                var subBox = parseInt(subBoxStr.replace(/[^0-9]/g, '')) || 1;
+
+                // The Google Sheet is the source of truth for physical location.
+                // Never redistribute an item into another box based on its slot
+                // number: this previously caused the apparent random placement.
+                var boxNum = rawBoxNum;
+                var slotNum = subBox;
+
+                // Row and column also come from the Sheet.  Do not calculate
+                // them from a locally hard-coded box layout.
+                var row = rawRow;
+                var col = rawCol;
+
+                var isSmart = raw.isSmart !== undefined ? Boolean(raw.isSmart) : (row > 0 && col > 0);
+
+                var shelf = String(raw.shelf || raw.location || (isSmart ? 'Shelf 1' : 'Main Rack')).trim();
+                if (!shelf || shelf.toLowerCase() === 'smart rack') shelf = 'Shelf 1';
+
+                var rawComp = String(raw.compartment || raw.section || 'A').trim().toUpperCase();
+                var compartment = cleanCompNameJS(rawComp);
+
+
+                var box = 'Box ' + boxNum;
+                var slot = 'Slot ' + slotNum;
+
+                return {
+                    id: id,
+                    name: name,
+                    category: category,
+                    quantity: quantity,
+                    row: row,
+                    col: col,
+                    boxNum: boxNum,
+                    subBox: slotNum,
+                    isSmart: isSmart,
+                    shelf: shelf,
+                    compartment: compartment,
+                    box: box,
+                    slot: slot,
+                    isReturnable: Boolean(raw.isReturnable),
+                    borrower: String(raw.borrower || ''),
+                    returnDate: String(raw.returnDate || ''),
+                    borrowedQty: Number(raw.borrowedQty || 0)
+                };
+            }
+
+            // Inventory may come from Google Sheets. Escape user-controlled text
+            // before adding it to HTML.
+            function escapeHtml(value) {
+                return String(value === undefined || value === null ? '' : value)
+                    .replace(/&/g, '&amp;')
+                    .replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;')
+                    .replace(/"/g, '&quot;')
+                    .replace(/'/g, '&#39;');
+            }
+
+            function syncItemsToStructure() {
+                var beforeStr = JSON.stringify(structRegistry);
+
+                if (!structRegistry.shelves || structRegistry.shelves.length === 0) {
+                    structRegistry.shelves = [{ name: 'Shelf 1' }];
+                }
+                if (!structRegistry.compartments || !structRegistry.compartments['Shelf 1'] || structRegistry.compartments['Shelf 1'].length === 0) {
+                    structRegistry.compartments = {
+                        'Shelf 1': [
+                            { name: 'A', x: 0, y: 0, w: 98, h: 46 },
+                            { name: 'B', x: 0, y: 50, w: 98, h: 46 }
+                        ]
+                    };
+                }
+                if (!structRegistry.boxes) structRegistry.boxes = {};
+                if (!structRegistry.slots) structRegistry.slots = {};
+
+                // Purge any mistakenly added 'Slot X' or 'box X' entries from compartments registry
+                Object.keys(structRegistry.compartments).forEach(function(shKey) {
+                    if (Array.isArray(structRegistry.compartments[shKey])) {
+                        var cleanedList = [];
+                        structRegistry.compartments[shKey].forEach(function(c) {
+                            var cName = (typeof c === 'string' ? c : (c.name || '')).trim().toUpperCase();
+                            if (cName.indexOf('SLOT ') === 0 || cName.indexOf('BOX ') === 0) {
+                                return;
+                            }
+                            var cleanN = cleanCompNameJS(cName);
+                            var defaultY = (cleanN === 'B' ? 50 : (cleanN === 'C' ? 25 : (cleanN === 'D' ? 75 : 0)));
+                            var xVal = (typeof c === 'object' && c.x !== undefined) ? Number(c.x) : 0;
+                            var yVal = (typeof c === 'object' && c.y !== undefined) ? Number(c.y) : defaultY;
+                            var wVal = (typeof c === 'object' && c.w !== undefined) ? Number(c.w) : 98;
+                            var hVal = (typeof c === 'object' && (c.h !== undefined || c.l !== undefined)) ? Number(c.h || c.l) : 45;
+                            cleanedList.push({ name: cleanN, x: xVal, y: yVal, w: wVal, h: hVal });
+                        });
+
+                        var seen = {};
+                        structRegistry.compartments[shKey] = cleanedList.filter(function(c) {
+                            if (seen[c.name]) return false;
+                            seen[c.name] = true;
+                            return true;
+                        });
+
+                        if (structRegistry.compartments[shKey].length === 0) {
+                            structRegistry.compartments[shKey] = [
+                                { name: 'A', x: 0, y: 0, w: 98, h: 45 },
+                                { name: 'B', x: 0, y: 50, w: 98, h: 45 }
+                            ];
+                        }
+                    }
+                });
+
+                // Purge any mistakenly added 'Slot X' entries from boxes registry
+                Object.keys(structRegistry.boxes).forEach(function(bKey) {
+                    if (Array.isArray(structRegistry.boxes[bKey])) {
+                        structRegistry.boxes[bKey] = structRegistry.boxes[bKey].filter(function(b) {
+                            var bName = (typeof b === 'string' ? b : (b.name || '')).toLowerCase().trim();
+                            return bName.indexOf('slot ') !== 0;
+                        });
+                    }
+                });
+
+                items.forEach(function(i) {
+                    var nLower = (i.name || '').toLowerCase().trim();
+                    if (!i.name || nLower.indexOf('compartment ') === 0 || (nLower.indexOf('slot ') === 0 && i.quantity === 0 && !i.row) || (nLower.indexOf('box ') === 0 && i.quantity === 0 && !i.row)) {
+                        return;
+                    }
+
+                    var sh = i.shelf || 'Shelf 1';
+                    var co = i.compartment || 'Compartment A';
+                    var bx = i.box || ('box ' + (i.boxNum || 1));
+                    var slName = i.slot || ('Slot ' + (i.subBox || 1));
+
+                    var sExists = structRegistry.shelves.some(function(s) {
+                        return (typeof s === 'string' ? s : s.name).toLowerCase() === sh.toLowerCase();
+                    });
+                    if (!sExists) structRegistry.shelves.push({ name: sh });
+
+                    if (!structRegistry.compartments[sh]) structRegistry.compartments[sh] = [];
+                    var cExists = structRegistry.compartments[sh].some(function(c) {
+                        return (typeof c === 'string' ? c : c.name).toLowerCase() === co.toLowerCase();
+                    });
+                    if (!cExists) structRegistry.compartments[sh].push({ name: co, x: 0, y: 0, w: 98, h: 23 });
+
+                    var bKey = (sh + '->' + cleanCompNameJS(co)).toLowerCase();
+                    if (!structRegistry.boxes[bKey]) structRegistry.boxes[bKey] = [];
+                    var bExists = structRegistry.boxes[bKey].some(function(b) {
+                        return (typeof b === 'string' ? b : b.name).toLowerCase() === bx.toLowerCase();
+                    });
+                    if (!bExists) {
+                        var bNum = getBoxNum(bx);
+                        var spec = getBoxSpecFromData(bNum);
+                        structRegistry.boxes[bKey].push({ name: bx, w: spec.w || 33, l: spec.l || 15 });
+                    }
+
+                    var sKey = (sh + '->' + cleanCompNameJS(co) + '->' + bx).toLowerCase();
+                    if (!structRegistry.slots[sKey]) structRegistry.slots[sKey] = [];
+                    var slExists = structRegistry.slots[sKey].some(function(sl) {
+                        return (typeof sl === 'string' ? sl : sl.name).toLowerCase() === slName.toLowerCase();
+                    });
+                    if (!slExists) {
+                        var bNum = getBoxNum(bx);
+                        var spec = getBoxSpecFromData(bNum);
+                        var slNum = Number(i.subBox) || 1;
+                        var cols = spec.cols > 0 ? spec.cols : 3;
+                        var slotW = spec.slotW > 0 ? spec.slotW : 3;
+                        var slotL = spec.slotL > 0 ? spec.slotL : 5;
+                        var slRow = Math.floor((slNum - 1) / cols);
+                        var slCol = (slNum - 1) % cols;
+                        structRegistry.slots[sKey].push({
+                            name: slName,
+                            x: slCol * slotW,
+                            y: slRow * slotL,
+                            w: slotW,
+                            l: slotL
+                        });
+                    }
+                });
+
+                var afterStr = JSON.stringify(structRegistry);
+                if (beforeStr !== afterStr) {
+                    saveStructure();
+                }
+            }
+
+            var GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx5ThwS5c4_pBSocc0TUJWiPAgoQv0nGwB11OkD-PwcGPrCyDMZyzLKE4XORYNtrpWouw/exec';
+
+            window.handleGoogleSheetsData = function(data) {
+                hideSyncOverlay();
+                if (!data) return;
+                if (data.structure) {
+                    var savedStructure = data.structure;
+                    if (savedStructure.compartments) {
+                        var normComps = {};
+                        Object.keys(savedStructure.compartments).forEach(function(k) {
+                            normComps[k] = savedStructure.compartments[k];
+                        });
+                        savedStructure.compartments = normComps;
+                    }
+                    if (savedStructure.boxes) {
+                        var normBoxes = {};
+                        Object.keys(savedStructure.boxes).forEach(function(k) {
+                            normBoxes[k.toLowerCase()] = savedStructure.boxes[k];
+                        });
+                        savedStructure.boxes = normBoxes;
+                    }
+                    if (savedStructure.slots) {
+                        var normSlots = {};
+                        Object.keys(savedStructure.slots).forEach(function(k) {
+                            normSlots[k.toLowerCase()] = savedStructure.slots[k];
+                        });
+                        savedStructure.slots = normSlots;
+                    }
+                    structRegistry = savedStructure;
+                    try { localStorage.setItem('smartrack_structure_v5', JSON.stringify(structRegistry)); } catch(e) {}
+                }
+                
+                var rawItems = Array.isArray(data) ? data : (data.items || []);
+                if (rawItems.length > 0) {
+                    items = rawItems.map(normalizeItem);
+                    try { localStorage.setItem('smartrack_cached_items_v1', JSON.stringify(items)); } catch(e) {}
+                    syncItemsToStructure();
+                    render();
+                    toast('&#9989; Loaded ' + items.length + ' items from Google Sheets');
+                } else {
+                    render();
+                }
+            };
+
+            var GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx5ThwS5c4_pBSocc0TUJWiPAgoQv0nGwB11OkD-PwcGPrCyDMZyzLKE4XORYNtrpWouw/exec';
+
+            window.handleGoogleSheetsData = function(data) {
+                hideSyncOverlay();
+                if (!data) return;
+                if (data.structure) {
+                    var savedStructure = data.structure;
+                    if (savedStructure.compartments) {
+                        var normComps = {};
+                        Object.keys(savedStructure.compartments).forEach(function(k) {
+                            normComps[k] = savedStructure.compartments[k];
+                        });
+                        savedStructure.compartments = normComps;
+                    }
+                    if (savedStructure.boxes) {
+                        var normBoxes = {};
+                        Object.keys(savedStructure.boxes).forEach(function(k) {
+                            normBoxes[k.toLowerCase()] = savedStructure.boxes[k];
+                        });
+                        savedStructure.boxes = normBoxes;
+                    }
+                    if (savedStructure.slots) {
+                        var normSlots = {};
+                        Object.keys(savedStructure.slots).forEach(function(k) {
+                            normSlots[k.toLowerCase()] = savedStructure.slots[k];
+                        });
+                        savedStructure.slots = normSlots;
+                    }
+                    structRegistry = savedStructure;
+                    try { localStorage.setItem('smartrack_structure_v5', JSON.stringify(structRegistry)); } catch(e) {}
+                }
+                
+                var rawItems = Array.isArray(data) ? data : (data.items || []);
+                if (rawItems.length > 0) {
+                    items = rawItems.map(normalizeItem);
+                    try { localStorage.setItem('smartrack_cached_items_v1', JSON.stringify(items)); } catch(e) {}
+                    syncItemsToStructure();
+                    render();
+                    toast('&#9989; Loaded ' + items.length + ' items from Google Sheets');
+                } else {
+                    render();
+                }
+            };
+
+            function fetchInventory() {
+                if (typeof isESP !== 'undefined' && isESP) {
+                    showSyncOverlay('📦 Loading items from ESP8266 Local Memory...');
+                    fetch('/inventory')
+                        .then(function(r) { return r.json(); })
+                        .then(function(data) {
+                            hideSyncOverlay();
+                            var rawItems = Array.isArray(data) ? data : (data.items || []);
+                            items = rawItems.map(normalizeItem);
+                            try { localStorage.setItem('smartrack_cached_items_v1', JSON.stringify(items)); } catch(e) {}
+                            syncItemsToStructure();
+                            render();
+                            toast('✅ Loaded ' + items.length + ' items from ESP Local Storage');
+                        })
+                        .catch(function(err) {
+                            hideSyncOverlay();
+                            toast('⚠️ Displaying cached items');
+                            render();
+                        });
+                    return;
+                }
+
+                showSyncOverlay('&#9729;&#65039; Loading inventory from Google Sheets...');
+                
+                try {
+                    var cachedStr = localStorage.getItem('smartrack_cached_items_v1');
+                    if (cachedStr) {
+                        var cached = JSON.parse(cachedStr);
+                        if (Array.isArray(cached) && cached.length > 0 && items.length === 0) {
+                            items = cached;
+                            render();
+                        }
+                    }
+                } catch(e) {}
+
+                fetch(GOOGLE_SCRIPT_URL, { mode: 'cors' })
+                    .then(function (r) {
+                        if (!r.ok) throw new Error('HTTP error ' + r.status);
+                        return r.json();
+                    })
+                    .then(function (data) {
+                        window.handleGoogleSheetsData(data);
+                    })
+                    .catch(function (err) {
+                        console.warn('CORS fetch failed, trying JSONP script tag injection...', err);
+                        var scriptId = 'jsonp_script_fetch';
+                        var oldScript = document.getElementById(scriptId);
+                        if (oldScript) oldScript.remove();
+
+                        var script = document.createElement('script');
+                        script.id = scriptId;
+                        script.src = GOOGLE_SCRIPT_URL + (GOOGLE_SCRIPT_URL.indexOf('?') === -1 ? '?' : '&') + 'callback=handleGoogleSheetsData&t=' + Date.now();
+                        script.onerror = function() {
+                            hideSyncOverlay();
+                            toast('&#9888;&#65039; Could not connect to Google Sheets. Displaying cached items.');
+                            render();
+                        };
+                        document.head.appendChild(script);
+                    });
+            }
+
+            function showSyncOverlay(msg) {
+                var el = document.getElementById('syncOverlay');
+                if (!el) {
+                    el = document.createElement('div');
+                    el.id = 'syncOverlay';
+                    el.style.position = 'fixed';
+                    el.style.inset = '0';
+                    el.style.background = 'rgba(15, 23, 42, 0.9)';
+                    el.style.backdropFilter = 'blur(10px)';
+                    el.style.display = 'flex';
+                    el.style.flexDirection = 'column';
+                    el.style.alignItems = 'center';
+                    el.style.justifyContent = 'center';
+                    el.style.color = '#fff';
+                    el.style.zIndex = '9999';
+                    el.style.padding = '2rem';
+                    el.style.textAlign = 'center';
+                    el.style.boxSizing = 'border-box';
+                    
+                    var spinner = document.createElement('div');
+                    spinner.style.width = '50px';
+                    spinner.style.height = '50px';
+                    spinner.style.border = '4px solid rgba(255,255,255,0.1)';
+                    spinner.style.borderTop = '4px solid #3b82f6';
+                    spinner.style.borderRadius = '50%';
+                    spinner.style.animation = 'spin 1s linear infinite';
+                    spinner.style.marginBottom = '1.5rem';
+                    
+                    if (!document.getElementById('spinStyle')) {
+                        var style = document.createElement('style');
+                        style.id = 'spinStyle';
+                        style.innerHTML = '@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }';
+                        document.head.appendChild(style);
+                    }
+                    
+                    var text = document.createElement('div');
+                    text.id = 'syncOverlayText';
+                    text.style.fontSize = '1.1rem';
+                    text.style.fontWeight = '600';
+                    text.style.maxWidth = '520px';
+                    text.style.lineHeight = '1.6';
+                    
+                    el.appendChild(spinner);
+                    el.appendChild(text);
+                    document.body.appendChild(el);
+                }
+                document.getElementById('syncOverlayText').innerHTML = msg;
+                el.style.display = 'flex';
+            }
+
+            function hideSyncOverlay() {
+                var el = document.getElementById('syncOverlay');
+                if (el) el.style.display = 'none';
+            }
+
+            function reloadAfterCloudFetch(attemptsRemaining) {
+                showSyncOverlay('📡 Reconnecting to ESP8266...<br><br>' +
+                                '<span style="font-size:0.9rem; font-weight:normal; opacity:0.85;">' +
+                                'Attempting to contact ESP8266 to reload inventory.<br>' +
+                                'If your device has not reconnected to the ESP8266 Access Point network, please check your Wi-Fi settings now.<br><br>' +
+                                'Attempts remaining: ' + attemptsRemaining +
+                                '</span>');
+                                
+                fetch('/inventory').then(function (r) {
+                    if (!r.ok) throw new Error('Inventory is not available yet');
+                    return r.json();
+                }).then(function () {
+                    hideSyncOverlay();
+                    fetchInventory();
+                    toast('✅ Cloud fetch complete; inventory reloaded');
+                }).catch(function () {
+                    if (attemptsRemaining > 0) {
+                        setTimeout(function () {
+                            reloadAfterCloudFetch(attemptsRemaining - 1);
+                        }, 5000);
+                    } else {
+                        hideSyncOverlay();
+                        toast('⚠️ Fetch may still be running; reload the page shortly.');
+                    }
+                });
+            }
+
+            function toast(msg) {
+                var el = document.getElementById('toast');
+                if (!el) return;
+                el.textContent = msg;
+                el.classList.add('show');
+                clearTimeout(window._tTimer);
+                window._tTimer = setTimeout(function () { el.classList.remove('show'); }, 2400);
+            }
+
+            function toggleDark() {
+                dark = !dark;
+                document.body.classList.toggle('dark', dark);
+                localStorage.setItem('smartrack_dark', dark);
+                updDk(); if (typeof isESP !== "undefined" && isESP) { var espBtns = document.querySelectorAll(".esp-only-btn"); espBtns.forEach(function(b){ b.style.display="inline-block"; }); var p = document.getElementById("connStatusPill"); if (p) { p.innerHTML = "&#128230; ESP Local Storage Connected"; p.style.background="#e0f2fe"; p.style.color="#0369a1"; p.style.borderColor="#7dd3fc"; } } if (typeof isESP !== "undefined" && isESP) { var espBtns = document.querySelectorAll(".esp-only-btn"); espBtns.forEach(function(b){ b.style.display="inline-block"; }); var p = document.getElementById("connStatusPill"); if (p) { p.innerHTML = "&#128230; ESP Local Storage Connected"; p.style.background="#e0f2fe"; p.style.color="#0369a1"; p.style.borderColor="#7dd3fc"; } }
+            }
+            function updDk() {
+                document.getElementById('dkb').textContent = dark ? '☀️' : '🌙';
+            }
+            window.toggleDark = toggleDark;
+
+            function switchPage(p) {
+                currentPage = p;
+                document.getElementById('tab-main').className = 'nav-tab-btn' + (p === 'main' ? ' active' : '');
+                document.getElementById('tab-hierarchy').className = 'nav-tab-btn' + (p === 'hierarchy' ? ' active' : '');
+                document.getElementById('pageMain').style.display = (p === 'main') ? 'flex' : 'none';
+                document.getElementById('pageHierarchy').style.display = (p === 'hierarchy') ? 'block' : 'none';
+                render();
+            }
+            window.switchPage = switchPage;
+
+             function resolveTargetComp(selectedBoxNum) {
+                 if (window.selectedCompartment) return window.selectedCompartment;
+                 var boxComp = null;
+                 if (structRegistry && structRegistry.boxes) {
+                     Object.keys(structRegistry.boxes).forEach(function(bKey) {
+                         var list = structRegistry.boxes[bKey] || [];
+                         var found = list.some(function(b) {
+                             var bName = typeof b === 'string' ? b : (b ? b.name : '');
+                             return getBoxNum(bName) === selectedBoxNum;
+                         });
+                         if (found) {
+                             var parts = bKey.split('->');
+                             if (parts.length > 1) {
+                                 boxComp = cleanCompNameJS(parts[1]);
+                             }
+                         }
+                     });
+                 }
+                 return boxComp;
+             }
+
+             // The dashboard rack is the physical LED matrix. It adapts its
+             // grid size to the selected box's specs (or defaults to 11x3 for all/Box 1-10).
+             function buildPhysicalRackGrid(grid) {
+                 var selectedBoxNum = selectedRackBox || 1;
+                 var spec = getBoxSpecFromData(selectedBoxNum);
+                 var maxRows = (selectedRackBox === 0) ? 11 : (spec.rows || 1);
+                 var maxCols = (selectedRackBox === 0) ? 3 : (spec.cols || 1);
+                 var targetComp = resolveTargetComp(selectedBoxNum);
+
+                 grid.style.display = 'grid';
+                 grid.style.gridTemplateColumns = 'repeat(' + maxCols + ', 1fr)';
+                 grid.style.gap = '8px';
+
+                 for (var row = 1; row <= maxRows; row++) {
+                     for (var col = 1; col <= maxCols; col++) {
+                         (function(r, c) {
+                             var cell = document.createElement('div');
+                             cell.className = 'rc';
+                             cell.id = 'c' + r + '_' + c;
+                             cell.setAttribute('data-row', r);
+                             cell.setAttribute('data-col', c);
+
+                             var labelText = '';
+                             var dimBadge = '';
+                             if (selectedRackBox === 0) {
+                                 var boxNum = (r - 1) * 3 + c;
+                                 labelText = boxNum <= 33 ? 'Box ' + boxNum : '';
+                             } else {
+                                 var slotNum = (r - 1) * spec.cols + c;
+                                 labelText = 'Slot ' + slotNum;
+                                 if (spec.slotW > 0 && spec.slotL > 0) {
+                                     dimBadge = '<span class="rc-dim" style="font-size:0.62rem; color:var(--text2); display:block; opacity:0.8;">' + spec.slotW + '×' + spec.slotL + ' cm</span>';
+                                 }
+                             }
+
+                             cell.innerHTML = '<div class="rc-led"></div><span class="rc-lbl">' + labelText + '</span>' + dimBadge + '<span class="rc-loc" style="font-size:0.62rem; color:var(--text2); display:block; opacity:0.8;"></span><span class="rc-nm" style="font-size:0.65rem; font-weight:700; opacity:0.95; max-width:90%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;"></span>';
+
+                             cell.onclick = function() {
+                                 if (selectedRackBox === 0) {
+                                     var boxNum = (r - 1) * 3 + c;
+                                     if (boxNum <= 33) {
+                                         var sel = document.getElementById('rack-box-select');
+                                         if (sel) {
+                                             sel.value = boxNum;
+                                             changeRackBox(boxNum);
+                                         }
+                                     }
+                                 } else {
+                                     var item = items.find(function(i) {
+                                         var boxMatches = getBoxNum(i.boxNum || i.box) === selectedRackBox;
+                                         var slotNum = (r - 1) * spec.cols + c;
+                                         var compMatches = (!targetComp || cleanCompNameJS(i.compartment) === targetComp);
+                                         return boxMatches && getSlotNum(i.subBox || i.slot) === slotNum && compMatches;
+                                     });
+                                     if (item) openLocateModal(item.id);
+                                     else {
+                                         var slotNum = (r - 1) * spec.cols + c;
+                                         toast('Slot ' + slotNum + ' in Box ' + selectedRackBox + ' is empty');
+                                     }
+                                 }
+                             };
+                             grid.appendChild(cell);
+                         })(row, col);
+                     }
+                 }
+             }
+
+             function updatePhysicalRackGrid() {
+                 var selectedBoxNum = selectedRackBox || 1;
+                 var spec = getBoxSpecFromData(selectedBoxNum);
+                 var maxRows = (selectedRackBox === 0) ? 11 : (spec.rows || 1);
+                 var maxCols = (selectedRackBox === 0) ? 3 : (spec.cols || 1);
+                 var targetComp = resolveTargetComp(selectedBoxNum);
+
+                 for (var row = 1; row <= maxRows; row++) {
+                     for (var col = 1; col <= maxCols; col++) {
+                         var cell = document.getElementById('c' + row + '_' + col);
+                         if (!cell) continue;
+                         var item = items.find(function(i) {
+                             if (selectedRackBox === 0) {
+                                 var boxNum = (row - 1) * 3 + col;
+                                 if (activeId !== null) {
+                                     return i.id === activeId && getBoxNum(i.boxNum || i.box) === boxNum;
+                                 }
+                                 return getBoxNum(i.boxNum || i.box) === boxNum;
+                             } else {
+                                 var boxMatches = getBoxNum(i.boxNum || i.box) === selectedRackBox;
+                                 var slotNum = (row - 1) * spec.cols + col;
+                                 var compMatches = (!targetComp || cleanCompNameJS(i.compartment) === targetComp);
+                                 return boxMatches && getSlotNum(i.subBox || i.slot) === slotNum && compMatches;
+                             }
+                         });
+                         cell.classList.toggle('act', Boolean(item && activeId === item.id));
+                         
+                         var name = cell.querySelector('.rc-nm');
+                         if (name) {
+                             name.textContent = item ? item.name : '';
+                             name.style.display = item ? 'block' : 'none';
+                         }
+                         
+                         var lbl = cell.querySelector('.rc-lbl');
+                         if (lbl) {
+                             lbl.style.display = item ? 'none' : 'block';
+                         }
+                         
+                         var dim = cell.querySelector('.rc-dim');
+                         if (dim) {
+                             dim.style.display = item ? 'none' : 'block';
+                         }
+                         
+                         var location = cell.querySelector('.rc-loc');
+                         if (location) {
+                             location.style.display = 'none';
+                         }
+                     }
+                 }
+             }
+
+            function buildRackGrid() {
+                var g = document.getElementById('rg');
+                if (!g) return;
+                g.innerHTML = '';
+                buildPhysicalRackGrid(g);
+
+                var selectedBoxNum = selectedRackBox || 1;
+                var spec = getBoxSpecFromData(selectedBoxNum);
+
+                var rackTitle = document.getElementById('rackTitle');
+                if (rackTitle) {
+                    var dimStr = (spec.w > 0 && spec.l > 0) ? (' - ' + spec.w + 'x' + spec.l + 'cm') : '';
+                    if (selectedRackBox === 0) {
+                        rackTitle.innerHTML = '📺 All Boxes (' + spec.slotsCount + ' Slots' + dimStr + ')';
+                    } else {
+                        rackTitle.innerHTML = '📦 Box ' + selectedBoxNum + ' Layout (' + spec.slotsCount + ' Slots' + dimStr + ')';
+                    }
+                }
+            }
+
+            function updateRackGrid() {
+                buildRackGrid();
+                updatePhysicalRackGrid();
+
+                var ldot = document.getElementById('ldot');
+                var lst = document.getElementById('lst');
+                if (ldot && lst) {
+                    if (activeId !== null) {
+                        ldot.classList.add('on');
+                        lst.textContent = 'LED On';
+                    } else {
+                        ldot.classList.remove('on');
+                        lst.textContent = 'LED Off';
+                    }
+                }
+            }
+
+            function render() {
+                if (currentPage === 'main') {
+                    renderMainPage();
+                } else {
+                    renderHierarchyPage();
+                }
+            }
+
+
+
+            function updateRackBoxSelect() {
+                var sel = document.getElementById('rack-box-select');
+                if (!sel) return;
+                var currentVal = selectedRackBox !== undefined ? selectedRackBox : 0;
+                sel.innerHTML = '<option value="0">All Boxes</option>';
+                
+                var boxNums = [];
+                items.forEach(function(i) {
+                    var bNum = getBoxNum(i.boxNum || i.box);
+                    if (bNum > 0 && boxNums.indexOf(bNum) === -1) boxNums.push(bNum);
+                });
+
+                if (structRegistry && structRegistry.boxes) {
+                    Object.keys(structRegistry.boxes).forEach(function(bKey) {
+                        var bList = structRegistry.boxes[bKey] || [];
+                        bList.forEach(function(bx) {
+                            var bxName = typeof bx === 'string' ? bx : (bx.name || '');
+                            var bNum = getBoxNum(bxName);
+                            if (bNum > 0 && boxNums.indexOf(bNum) === -1) boxNums.push(bNum);
+                        });
+                    });
+                }
+
+                boxNums.sort(function(a, b) { return a - b; });
+
+                boxNums.forEach(function(b) {
+                    var opt = document.createElement('option');
+                    opt.value = b;
+                    opt.textContent = 'Box ' + b;
+                    if (b == currentVal) opt.selected = true;
+                    sel.appendChild(opt);
+                });
+            }
+
+            function updateCompStackVisualizer() {
+                var pane = document.getElementById('compStackPane');
+                if (!pane) return;
+                
+                var activeComp = null;
+                if (activeId !== null) {
+                    var actItem = items.find(function(i) { return i.id === activeId; });
+                    if (actItem) activeComp = cleanCompNameJS(actItem.compartment);
+                } else if (srch) {
+                    var srchItem = items.find(function(i) {
+                        var nMatch = (i.name || '').toLowerCase().indexOf(srch) !== -1;
+                        var cMatch = (i.category || '').toLowerCase().indexOf(srch) !== -1;
+                        var cmMatch = (i.compartment || '').toLowerCase().indexOf(srch) !== -1;
+                        return nMatch || cMatch || cmMatch;
+                    });
+                    if (srchItem) activeComp = cleanCompNameJS(srchItem.compartment);
+                }
+
+                var comps = [];
+                items.forEach(function(i) {
+                    var c = cleanCompNameJS(i.compartment);
+                    if (comps.indexOf(c) === -1) comps.push(c);
+                });
+                if (comps.length === 0) comps = ['A', 'B'];
+                comps.sort();
+
+                var html = '<h3 style="font-size:0.8rem; font-weight:700; text-align:center; color:var(--text2); margin-bottom:0.2rem;">📍 Compartment</h3>';
+                
+                comps.forEach(function(c) {
+                    var isGlow = (window.selectedCompartment === c || (activeId !== null && activeComp === c));
+                    html += '<div class="comp-bay' + (isGlow ? ' glowing-active' : '') + '" onclick="filterByCompartment(\'' + c + '\')" title="Compartment ' + c + '">' +
+                        '<span>' + c + '</span>' +
+                        '<span style="font-size:0.62rem; font-weight:700; opacity:0.9; margin-top:2px;">' + (isGlow ? '⚡ ACTIVE' : 'Bay ' + c) + '</span>' +
+                        '</div>';
+                });
+                
+                pane.innerHTML = html;
+            }
+
+            window.filterByCompartment = function(c) {
+                if (window.selectedCompartment === c) {
+                    window.selectedCompartment = null;
+                } else {
+                    window.selectedCompartment = c;
+                }
+                renderMainPage();
+            };
+
+            function renderMainPage() {
+                updateRackBoxSelect();
+                updateRackGrid();
+                updateCompStackVisualizer();
+
+                var cats = ['All', 'Electronics', 'Resistor', 'Capacitors', 'Active', 'Passive', 'Connectors', 'PCB', 'Debuggers', 'Cables', 'General Items'];
+                var cf = document.getElementById('cf');
+                cf.innerHTML = '';
+                cats.forEach(function (c) {
+                    var btn = document.createElement('button');
+                    btn.className = 'cp' + (activeCat === c ? ' on' : '');
+                    btn.textContent = c;
+                    btn.onclick = function () { activeCat = c; renderMainPage(); };
+                    cf.appendChild(btn);
+                });
+
+                var filtered = items.filter(function (i) {
+                    var nLower = (i.name || '').toLowerCase().trim();
+                    var isStructPlaceholder = i.name && (nLower.indexOf('compartment ') === 0 || (nLower.indexOf('slot ') === 0 && i.quantity === 0 && !i.row) || (nLower.indexOf('box ') === 0 && i.quantity === 0 && !i.row));
+                    var mCat = (activeCat === 'All' || i.category === activeCat);
+                    var mSrch = (!srch || i.name.toLowerCase().indexOf(srch) !== -1 || i.category.toLowerCase().indexOf(srch) !== -1);
+                    var mComp = (!window.selectedCompartment || cleanCompNameJS(i.compartment) === window.selectedCompartment);
+                    return !isStructPlaceholder && mCat && mSrch && mComp;
+                });
+
+                document.getElementById('cb').textContent = filtered.length + ' items';
+
+                var cg = document.getElementById('cg');
+                cg.innerHTML = '';
+
+                if (filtered.length === 0) {
+                    cg.innerHTML = '<div style="grid-column:1/-1; text-align:center; padding:3rem; color:var(--text2);"><span style="font-size:2rem; display:block;">📦</span>No items found</div>';
+                    return;
+                }
+
+                filtered.forEach(function (item) {
+                    var card = document.createElement('div');
+                    card.className = 'card';
+                    var isSearchMatch = (srch && (item.name.toLowerCase().indexOf(srch) !== -1 || item.category.toLowerCase().indexOf(srch) !== -1));
+                    var isLocated = (activeId === item.id);
+                    var locStyle = (isLocated || isSearchMatch) ? 'background:#fef08a; color:#854d0e; font-weight:700; padding:0.25rem 0.6rem; border-radius:8px; border:1.5px solid #facc15;' : '';
+
+                    var html = '<div class="cn"><span>' + escapeHtml(item.name) + '</span><span class="ctag">' + escapeHtml(item.category) + '</span></div>' +
+                        '<div class="ci">' +
+                        '<span>📦 Qty: ' + item.quantity + '</span>' +
+                        '<span style="' + locStyle + '">📍 ' + escapeHtml(item.shelf) + ' ➔ <strong>Compartment ' + escapeHtml(item.compartment) + '</strong> ➔ ' + escapeHtml(item.box) + ' ➔ ' + escapeHtml(item.slot) + '</span>' +
+                        (item.isSmart ? '<span style="color:#10b981;">💡 LED: R' + item.row + 'C' + item.col + '</span>' : '') +
+                        (item.quantity < 5 ? '<span class="low">LOW</span>' : '') +
+                        '</div>';
+
+                    if (item.isReturnable && item.borrower) {
+                        html += '<div style="font-size:0.8rem; color:#b45309; margin-top:2px;">Borrowed by: <strong>' + escapeHtml(item.borrower) + '</strong> (Due: ' + escapeHtml(item.returnDate) + ')</div>';
+                    }
+
+                    html += '<div class="ca">' +
+                        '<button class="btn btn-o btn-sm" onclick="openEditModal(' + item.id + ')">✏️</button>' +
+                        '<button class="btn btn-danger btn-sm" onclick="deleteItem(' + item.id + ')">🗑️</button>';
+
+                    if (item.isReturnable && item.borrower) {
+                        html += '<button class="btn btn-p btn-sm" style="background:#10b981;" onclick="returnItem(' + item.id + ')">↩️ Return</button>';
+                    }
+                    html += '<button class="btn btn-p btn-sm" onclick="openLocateModal(' + item.id + ')">💡 Locate</button>' +
+                        '</div>';
+
+                    card.innerHTML = html;
+                    cg.appendChild(card);
+                });
+            }
+
+            function renderHierarchyPage() {
+                if (!structRegistry.shelves || structRegistry.shelves.length === 0) structRegistry.shelves = [{ name: 'Shelf 1' }];
+                var shelfObjs = structRegistry.shelves.map(getShelfObj);
+                var activeShelfObj = shelfObjs.find(function(sh) { return sh.name.toLowerCase() === selectedHShelf.toLowerCase(); }) || shelfObjs[0];
+                selectedHShelf = activeShelfObj.name;
+
+                var hsSelect = document.getElementById('hShelfSelect');
+                if (hsSelect) {
+                    hsSelect.innerHTML = '';
+                    shelfObjs.forEach(function (sh) {
+                        var o = document.createElement('option');
+                        o.value = sh.name;
+                        o.textContent = sh.name;
+                        if (sh.name === selectedHShelf) o.selected = true;
+                        hsSelect.appendChild(o);
+                    });
+                }
+
+                var hcSelect = document.getElementById('hCompSelect');
+                if (hcSelect) hcSelect.innerHTML = '';
+
+                var rawComps = [];
+                if (structRegistry && structRegistry.compartments) {
+                    var keys = Object.keys(structRegistry.compartments);
+                    var matchKey = keys.find(function(k) { return k.toLowerCase() === (selectedHShelf || '').toLowerCase(); });
+                    if (matchKey) rawComps = structRegistry.compartments[matchKey];
+                }
+
+                var seenComps = {};
+                rawComps = (rawComps || []).filter(function(c) {
+                    var cName = (typeof c === 'string' ? c : (c.name || '')).trim().toUpperCase();
+                    return cName.indexOf('SLOT ') !== 0 && cName.indexOf('BOX ') !== 0;
+                }).map(function(c) {
+                    var rawN = (typeof c === 'string' ? c : (c.name || '')).trim().toUpperCase();
+                    var cleanN = cleanCompNameJS(rawN);
+                    var defaultY = (cleanN === 'B' ? 50 : (cleanN === 'C' ? 25 : (cleanN === 'D' ? 75 : 0)));
+                    var xVal = (typeof c === 'object' && c.x !== undefined) ? Number(c.x) : 0;
+                    var yVal = (typeof c === 'object' && c.y !== undefined) ? Number(c.y) : defaultY;
+                    var wVal = (typeof c === 'object' && c.w !== undefined) ? Number(c.w) : 98;
+                    var hVal = (typeof c === 'object' && (c.h !== undefined || c.l !== undefined)) ? Number(c.h || c.l) : 45;
+                    return { name: cleanN, x: xVal, y: yVal, w: wVal, h: hVal };
+                }).filter(function(c) {
+                    if (seenComps[c.name]) return false;
+                    seenComps[c.name] = true;
+                    return true;
+                });
+
+                if (rawComps.length === 0) {
+                    rawComps = [
+                        { name: 'A', x: 0, y: 0, w: 98, h: 45 },
+                        { name: 'B', x: 0, y: 50, w: 98, h: 45 }
+                    ];
+                }
+                if (structRegistry && structRegistry.compartments) {
+                    structRegistry.compartments[selectedHShelf] = rawComps;
+                }
+                var compObjs = rawComps.map(getCompObj);
+                var activeCompObj = compObjs.find(function(co) { return co.name.toLowerCase() === (selectedHComp || '').toLowerCase(); }) || compObjs[0] || null;
+                selectedHComp = activeCompObj ? activeCompObj.name : null;
+
+                if (hcSelect) {
+                    if (compObjs.length === 0) {
+                        var o = document.createElement('option');
+                        o.value = '';
+                        o.textContent = '(No Compartments)';
+                        hcSelect.appendChild(o);
+                    } else {
+                        compObjs.forEach(function (co) {
+                            var o = document.createElement('option');
+                            o.value = co.name;
+                            o.textContent = co.name + ' (X:' + co.x + '% Y:' + co.y + '%)';
+                            if (co.name === selectedHComp) o.selected = true;
+                            hcSelect.appendChild(o);
+                        });
+                    }
+                }
+
+                var container = document.getElementById('hierarchyContent');
+                container.innerHTML = '';
+
+                var itemsInShelf = items.filter(function (i) {
+                    return i.shelf.toLowerCase() === selectedHShelf.toLowerCase();
+                });
+
+                var bKey = (selectedHShelf + '->' + cleanCompNameJS(selectedHComp || '')).toLowerCase();
+
+                if (!selectedHBox) {
+                    var html = '<div style="display:flex; gap:1.5rem; flex-wrap:wrap; align-items:flex-start;">';
+
+                    // LEFT SPLIT PANE: Shelf Canvas & Compartments
+                    html += '<div style="flex:1; min-width:340px; background:var(--surface); border:1.5px solid var(--border); border-radius:20px; padding:1.2rem; box-shadow:var(--shadow);">' +
+                        '<div style="margin-bottom:1rem; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.5rem;">' +
+                        '<div>' +
+                        '<h3 style="font-size:1.15rem; font-weight:700;">Compartments in ' + selectedHShelf + '</h3>' +
+                        '<span style="font-size:0.75rem; color:var(--text2); font-weight:600;">🖱️ Drag & Draw canvas grid below</span>' +
+                        '</div>' +
+                        '' +
+                        '</div>';
+
+                    // Interactive Shelf Canvas Graph
+                    html += '<div id="shelfCanvas" class="canvas-container" style="height:380px; min-height:300px; max-height:800px; resize:none;">' +
+                        '<div id="shelfGridBg" style="position:absolute; inset:0; background-size: 24px 24px; background-image: linear-gradient(to right, rgba(128,128,128,0.12) 1px, transparent 1px), linear-gradient(to bottom, rgba(128,128,128,0.12) 1px, transparent 1px); pointer-events:none;"></div>' +
+                        '<div id="shelfDragRubberband" style="position:absolute; display:none; border:2px dashed var(--accent); background:rgba(59,130,246,0.2); pointer-events:none; border-radius:10px; z-index:10;"></div>';
+
+                    if (compObjs.length === 0) {
+                        html += '<div style="position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:0.5rem; color:var(--text2); pointer-events:none; padding:1rem; text-align:center;">' +
+                            '<span style="font-size:2.2rem;">📐</span>' +
+                            '<span style="font-size:1.05rem; font-weight:700;">Shelf is empty</span>' +
+                            '<span style="font-size:0.82rem; opacity:0.8;">Click & Drag across this canvas to draw a Compartment!</span>' +
+                            '</div>';
+                    } else {
+                        compObjs.forEach(function(cObj) {
+                            var count = itemsInShelf.filter(function(i) {
+                                return cleanCompNameJS(i.compartment) === cObj.name;
+                            }).length;
+
+                            var isSel = cleanCompNameJS(selectedHComp) === cObj.name;
+
+                            var hasSearchMatch = false;
+                            if (srch || activeId !== null) {
+                                hasSearchMatch = itemsInShelf.some(function(i) {
+                                    var inThisComp = cleanCompNameJS(i.compartment) === cObj.name;
+                                    var mSrch = srch && (i.name.toLowerCase().indexOf(srch) !== -1 || i.category.toLowerCase().indexOf(srch) !== -1 || i.compartment.toLowerCase().indexOf(srch) !== -1 || i.box.toLowerCase().indexOf(srch) !== -1);
+                                    var mAct = activeId !== null && i.id === activeId;
+                                    return inThisComp && (mSrch || mAct);
+                                });
+                            }
+
+                            var compBg = hasSearchMatch ? 'rgba(250, 204, 21, 0.28)' : (isSel ? 'rgba(59,130,246,0.18)' : 'rgba(16,185,129,0.15)');
+                            var compBorder = hasSearchMatch ? '3.5px solid #facc15' : (isSel ? '2.5px solid var(--accent)' : '2.5px solid #10b981');
+                            var compShadow = hasSearchMatch ? '0 0 22px rgba(250, 204, 21, 0.7)' : '0 4px 12px rgba(0,0,0,0.06)';
+
+                            var displayCompLabel = 'Compartment ' + cObj.name.replace(/^compartment\s+/i, '');
+                            html += '<div class="drawn-slot' + (isSel ? ' active-loc' : '') + (hasSearchMatch ? ' search-highlight' : '') + '" style="position:absolute; left:' + cObj.x + '%; top:' + cObj.y + '%; width:' + cObj.w + '%; height:' + cObj.h + '%; background:' + compBg + '; border:' + compBorder + '; border-radius:12px; cursor:pointer; padding:0.6rem; display:flex; flex-direction:column; justify-content:space-between; box-sizing:border-box; box-shadow:' + compShadow + '; transition:0.15s;"' +
+                                ' title="' + displayCompLabel + ' (X:' + cObj.x + '% Y:' + cObj.y + '%)"' +
+                                ' onclick="onCompCanvasClick(\'' + cObj.name.replace(/'/g, "\\'") + '\', event)">' +
+                                '<div style="display:flex; justify-content:space-between; align-items:flex-start; flex-direction:column; gap:0.3rem;">' +
+                                '<strong style="font-size:0.95rem; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:100%;">' + (hasSearchMatch ? '🔍 ' : '') + displayCompLabel + '</strong>' +
+                                '<span style="font-size:0.7rem; color:' + (hasSearchMatch ? '#854d0e' : '#10b981') + '; font-weight:700; background:' + (hasSearchMatch ? '#fef08a' : 'var(--surface)') + '; padding:0.15rem 0.4rem; border-radius:6px; border:1px solid var(--border);">📦 ' + count + ' items</span>' +
+                                '</div>' +
+                                '<div style="font-size:0.75rem; font-weight:700; color:' + (hasSearchMatch ? '#ca8a04' : (isSel ? 'var(--accent)' : 'var(--text2)')) + ';">' + (hasSearchMatch ? '⚡ MATCH FOUND HERE' : (isSel ? '✓ Active' : 'Click to select')) + '</div>' +
+                                '</div>';
+                        });
+                    }
+
+                    html += '</div>'; // End shelfCanvas
+                    
+                    // Custom Resize Handle Bar
+                    html += '<div class="resize-handle-bar" id="shelfCanvasResizer" style="width:100%; height:12px; background:var(--border); border-radius:6px; cursor:ns-resize; margin-top:-8px; margin-bottom:1.4rem; display:flex; align-items:center; justify-content:center; transition:background 0.2s;" onmouseover="this.style.background=\'var(--accent)\'" onmouseout="this.style.background=\'var(--border)\'">' +
+                        '<div style="width:40px; height:4px; background:rgba(255,255,255,0.3); border-radius:2px;"></div>' +
+                        '</div>';
+                        
+                    html += '</div>'; // End Left Split Pane
+
+                    // RIGHT SPLIT PANE: Container Boxes inside Selected Compartment
+                    html += '<div style="flex:1; min-width:340px; background:var(--surface); border:1.5px solid var(--border); border-radius:20px; padding:1.2rem; box-shadow:var(--shadow);">' +
+                        '<div style="margin-bottom:1rem; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.5rem;">' +
+                        '<div>' +
+                        '<h3 style="font-size:1.15rem; font-weight:700;">Boxes in ' + (selectedHComp || 'Selected Compartment') + '</h3>' +
+                        '<span style="font-size:0.75rem; color:var(--text2); font-weight:600;">Containers inside selected location</span>' +
+                        '</div>' +
+                        '<div style="display:flex; gap:0.4rem;">' +
+                        (selectedHComp ? '' : '') +
+                        '' +
+                        '</div>' +
+                        '</div>';
+
+                    if (!selectedHComp) {
+                        html += '<div style="text-align:center; padding:3rem 1rem; color:var(--text2); background:var(--surface2); border-radius:16px;">' +
+                            '<span style="font-size:2rem; display:block; margin-bottom:0.5rem;">📦</span>' +
+                            '<strong>No compartment selected</strong><br><span style="font-size:0.82rem; opacity:0.8;">Draw or select a compartment on the left canvas to view its boxes.</span>' +
+                            '</div>';
+                    } else {
+                        var rawBoxes = [];
+                        if (structRegistry && structRegistry.boxes) {
+                            var targetKey = (selectedHShelf + '->' + cleanCompNameJS(selectedHComp)).toLowerCase();
+                            rawBoxes = structRegistry.boxes[targetKey] || [];
+                        }
+                        rawBoxes = (rawBoxes || []).filter(function(b) {
+                            var bName = (typeof b === 'string' ? b : (b.name || '')).toLowerCase().trim();
+                            return bName.indexOf('slot ') !== 0 && bName.indexOf('compartment ') !== 0;
+                        });
+
+                        if (rawBoxes.length === 0) {
+                            var bNums = [];
+                            itemsInShelf.forEach(function(i) {
+                                if (cleanCompNameJS(i.compartment) === cleanCompNameJS(selectedHComp)) {
+                                    var bNum = getBoxNum(i.boxNum || i.box);
+                                    if (bNums.indexOf(bNum) === -1) bNums.push(bNum);
+                                }
+                            });
+                            bNums.sort(function(a, b) { return a - b; });
+                            rawBoxes = bNums.map(function(bn) {
+                                var spec = getBoxSpecFromData(bn);
+                                return { name: 'Box ' + bn, boxNum: bn, w: spec.w, l: spec.l };
+                            });
+                            if (structRegistry && structRegistry.boxes) {
+                                var targetKey = (selectedHShelf + '->' + cleanCompNameJS(selectedHComp)).toLowerCase();
+                                structRegistry.boxes[targetKey] = rawBoxes;
+                            }
+                        }
+
+                        html += '<div style="display:flex; flex-direction:column; gap:8px;">';
+
+                        if (rawBoxes.length === 0) {
+                            html += '<div style="text-align:center; padding:2rem 1rem; color:var(--text2); background:var(--surface2); border-radius:16px;">No boxes created in this compartment. Click <strong>+ Add Box</strong> above.</div>';
+                        } else {
+                            rawBoxes.forEach(function (rawB) {
+                                var bObj = getBoxObj(rawB);
+                                var bArea = bObj.w * bObj.l;
+                                var bNum = getBoxNum(bObj.name || bObj.boxNum);
+                                var count = itemsInShelf.filter(function (i) {
+                                    var isSameComp = cleanCompNameJS(i.compartment) === cleanCompNameJS(selectedHComp);
+                                    var isSameBox = getBoxNum(i.boxNum || i.box) === bNum;
+                                    return isSameComp && isSameBox;
+                                }).length;
+                                
+                                html += '<div class="box-unit">' +
+                                    '<div style="display:flex; flex-direction:column; gap:2px; min-width:0;">' +
+                                    '<div style="display:flex; align-items:center; gap:0.45rem; flex-wrap:nowrap;">' +
+                                    '<strong style="font-size:0.95rem; white-space:nowrap;">' + bObj.name + '</strong>' +
+                                    '<span class="dim-badge" style="font-size:0.68rem; padding:0.12rem 0.45rem;">📐 ' + bObj.w + ' × ' + bObj.l + ' cm (' + bArea + ' cm²)</span>' +
+                                    '</div>' +
+                                    '<span style="font-size:0.75rem; color:var(--text2);">📦 ' + count + ' items stored</span>' +
+                                    '</div>' +
+                                    '<div style="display:flex; gap:0.35rem; align-items:center; flex-shrink:0;">' +
+                                    '' +
+                                    '<button class="btn btn-p btn-sm" style="padding:0.3rem 0.65rem; font-size:0.75rem;" onclick="openHBox(\'' + bObj.name.replace(/'/g, "\\'") + '\')">Canvas ➔</button>' +
+                                    '</div></div>';
+                            });
+                        }
+                        html += '</div>';
+                    }
+
+                    html += '</div>'; // End Right Split Pane
+                    html += '</div>'; // End Side-by-Side Flex Container
+
+                    setTimeout(initShelfCanvasDragEvents, 50);
+                    container.innerHTML = html;
+
+                    setTimeout(function() {
+                        initShelfCanvasDragEvents(activeShelfObj);
+                    }, 50);
+
+                } else {
+                    var targetBoxNum = getBoxNum(selectedHBox);
+                    var spec = getBoxSpecFromData(targetBoxNum);
+
+                    var rawBoxesInComp = structRegistry.boxes[bKey] || [];
+                    var activeBoxObj = getBoxObj(rawBoxesInComp.find(function(b) {
+                        return getBoxNum(typeof b === 'string' ? b : b.name) === targetBoxNum;
+                    }) || { name: 'Box ' + targetBoxNum, boxNum: targetBoxNum, w: spec.w, l: spec.l });
+
+                    var totalBoxArea = activeBoxObj.w * activeBoxObj.l;
+                    var itemsInBox = itemsInShelf.filter(function (i) {
+                        var isSameComp = cleanCompNameJS(i.compartment) === cleanCompNameJS(selectedHComp);
+                        var isSameBox = getBoxNum(i.boxNum || i.box) === targetBoxNum;
+                        return isSameComp && isSameBox;
+                    });
+
+                    var rawSlots = [];
+                    if (structRegistry && structRegistry.slots) {
+                        var targetSKey = (selectedHShelf + '->' + cleanCompNameJS(selectedHComp) + '->Box ' + targetBoxNum).toLowerCase();
+                        rawSlots = structRegistry.slots[targetSKey] || [];
+                    }
+                    rawSlots = (rawSlots || []).filter(function(s) {
+                        var sName = (typeof s === 'string' ? s : (s.name || '')).toLowerCase().trim();
+                        return sName.length > 0;
+                    });
+
+                    if (rawSlots.length < spec.slotsCount) {
+                        var existingNums = {};
+                        rawSlots.forEach(function(s) {
+                            var sNum = getSlotNum(s.name || s.slotNum);
+                            existingNums[sNum] = true;
+                        });
+
+                        for (var s = 1; s <= spec.slotsCount; s++) {
+                            if (!existingNums[s]) {
+                                var r = Math.floor((s - 1) / spec.cols);
+                                var c = (s - 1) % spec.cols;
+                                rawSlots.push({
+                                    name: 'Slot ' + s,
+                                    slotNum: s,
+                                    x: c * spec.slotW,
+                                    y: r * spec.slotL,
+                                    w: spec.slotW,
+                                    l: spec.slotL
+                                });
+                            }
+                        }
+
+                        rawSlots.sort(function(a, b) {
+                            return getSlotNum(a.name || a.slotNum) - getSlotNum(b.name || b.slotNum);
+                        });
+
+                        var saveKey = (selectedHShelf + '->' + cleanCompNameJS(selectedHComp) + '->Box ' + targetBoxNum).toLowerCase();
+                        structRegistry.slots[saveKey] = rawSlots;
+                        saveStructure();
+                    }
+                    var slotsList = rawSlots.map(getSlotObj);
+
+                    var usedArea = 0;
+                    slotsList.forEach(function(sObj) { usedArea += (sObj.w * sObj.l); });
+                    var freeArea = Math.max(0, totalBoxArea - usedArea);
+                    var usedPct = Math.min(100, Math.round((usedArea / totalBoxArea) * 100));
+                    var barColor = usedPct > 95 ? '#ef4444' : (usedPct > 80 ? '#f59e0b' : '#3b82f6');
+
+                    var html = '<div style="margin-bottom:1rem; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.5rem;">' +
+                        '<div style="display:flex; align-items:center; gap:0.8rem;">' +
+                        '<button class="btn btn-o" onclick="closeHBox()">← Back to ' + selectedHComp + '</button>' +
+                        '<h3 style="font-size:1.2rem; font-weight:700;">inside ' + selectedHBox + '</h3>' +
+                        '<span class="dim-badge" style="font-size:0.82rem;">📐 Box Canvas: ' + activeBoxObj.w + ' × ' + activeBoxObj.l + ' cm (' + totalBoxArea + ' cm²)</span>' +
+                        '</div>' +
+                        '<div style="display:flex; gap:0.5rem;">' +
+                        '' +
+                        '</div></div>';
+
+                    // Instruction Banner
+                    html += '<div style="background:rgba(59, 130, 246, 0.08); border:1.5px solid var(--accent); padding:0.65rem 1rem; border-radius:14px; margin-bottom:1rem; font-size:0.85rem; font-weight:600; color:var(--text); display:flex; justify-content:space-between; align-items:center;">' +
+                        '<span>🖱️ <strong>Drag & Draw on Graph Canvas</strong> below to create a slot boundary rectangle!</span>' +
+                        '<span class="dim-badge">Grid: Scaled representation view</span>' +
+                        '</div>';
+
+                    // Interactive Drag-to-Draw Graph Canvas Container
+                    html += '<div id="boxCanvas" class="canvas-container">' +
+                        '<div id="canvasGridBg" class="canvas-grid-lines"></div>' +
+                        '<div id="dragRubberband" class="drag-box" style="display:none;"></div>';
+
+                    // Render Scaled Slot Rectangles on Graph Canvas
+                    slotsList.forEach(function(sObj) {
+                        var leftPct = 0, topPct = 0, widthPct = 0, heightPct = 0;
+                        var sNum = getSlotNum(sObj.name || sObj.slotNum);
+                        if (sObj.w && sObj.l && activeBoxObj.w > 0 && activeBoxObj.l > 0) {
+                            leftPct = (Number(sObj.x || 0) / activeBoxObj.w) * 100;
+                            topPct = (Number(sObj.y || 0) / activeBoxObj.l) * 100;
+                            widthPct = (Number(sObj.w) / activeBoxObj.w) * 100;
+                            heightPct = (Number(sObj.l) / activeBoxObj.l) * 100;
+                        } else {
+                            var r = Math.floor((sNum - 1) / spec.cols);
+                            var c = (sNum - 1) % spec.cols;
+                            leftPct = (c / spec.cols) * 100;
+                            topPct = (r / Math.max(1, spec.rows)) * 100;
+                            widthPct = (1 / spec.cols) * 100;
+                            heightPct = (1 / Math.max(1, spec.rows)) * 100;
+                        }
+
+                        var matching = itemsInBox.filter(function (i) {
+                            return getSlotNum(i.subBox || i.slot) === sNum;
+                        });
+                        var isLoc = matching.some(function(it) { return it.id === activeId; });
+
+                        html += '<div class="drawn-slot' + (isLoc ? ' active-loc' : '') + '" style="left:' + leftPct + '%; top:' + topPct + '%; width:' + widthPct + '%; height:' + heightPct + '%;"' +
+                            ' title="' + sObj.name + ' (' + sObj.w + 'x' + sObj.l + 'cm)"' +
+                            ' onclick="onSlotCanvasClick(\'' + sObj.name.replace(/'/g, "\\'") + '\', event)">' +
+                            '<span>' + sObj.name + '</span>' +
+                            '<span style="font-size:0.65rem; opacity:0.8;">' + sObj.w + '×' + sObj.l + 'cm</span>' +
+                            (matching.length > 0 ? '<span style="font-size:0.65rem; color:#10b981; font-weight:700;">📦 ' + matching.length + ' item</span>' : '') +
+                            '</div>';
+                    });
+
+                    html += '</div>';
+
+                    // Capacity Progress Bar
+                    html += '<div class="cap-bar-wrap">' +
+                        '<div style="display:flex; justify-content:space-between; align-items:center; font-size:0.85rem; font-weight:700;">' +
+                        '<span>Physical Area Allocation: ' + usedArea + ' cm² allocated (' + usedPct + '%)</span>' +
+                        '<span style="color:' + (freeArea === 0 ? '#ef4444' : 'var(--text2)') + ';">Free Space: ' + freeArea + ' cm²</span>' +
+                        '</div>' +
+                        '<div class="cap-progress"><div class="cap-fill" style="width:' + usedPct + '%; background:' + barColor + ';"></div></div>' +
+                        '</div>';
+
+                    html += '<h4 style="font-size:1rem; font-weight:700; margin-bottom:0.8rem;">Drawn Slot Boundaries & Assigned Items</h4><div class="slots-grid">';
+
+                    if (slotsList.length === 0) {
+                        html += '<div style="grid-column:1/-1; text-align:center; padding:2rem; color:var(--text2); background:var(--surface2); border-radius:16px;">No slots drawn yet. Click & Drag across the graph canvas above to draw a slot!</div>';
+                    } else {
+                        slotsList.forEach(function (sObj) {
+                            var sArea = sObj.w * sObj.l;
+                            var sPct = Math.round((sArea / totalBoxArea) * 100);
+                            var matching = itemsInBox.filter(function (i) { return i.slot.toLowerCase() === sObj.name.toLowerCase(); });
+
+                            html += '<div class="slot-card"><div>' +
+                                '<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.35rem;">' +
+                                '<strong>' + sObj.name + '</strong>' +
+                                '<button class="btn btn-danger btn-sm" style="padding:0.15rem 0.45rem; font-size:0.7rem;" onclick="deleteSlot(\'' + sObj.name.replace(/'/g, "\\'") + '\')">🗑️ Delete</button>' +
+                                '</div>' +
+                                '<div style="margin-bottom:0.6rem;"><span class="dim-badge">📐 X:' + sObj.x + ' Y:' + sObj.y + ' | ' + sObj.w + '×' + sObj.l + 'cm (' + sArea + ' cm²)</span></div>';
+
+                            if (matching.length > 0) {
+                                matching.forEach(function (it) {
+                                    html += '<div style="font-size:0.82rem; margin-top:4px; font-weight:600; color:var(--text);">' + it.name + ' (Qty: ' + it.quantity + ')</div>';
+                                });
+                            } else {
+                                html += '<div style="font-size:0.8rem; opacity:0.5; margin-top:4px;">Empty Slot</div>';
+                            }
+                            html += '</div>';
+
+                            if (matching.length > 0) {
+                                html += '<button class="btn btn-p btn-sm" style="margin-top:0.6rem;" onclick="openLocateModal(' + matching[0].id + ')">💡 Locate</button>';
+                            }
+                            html += '</div>';
+                        });
+                    }
+
+                    html += '</div>';
+                    container.innerHTML = html;
+
+                    setTimeout(function() {
+                        initCanvasDragEvents(activeBoxObj);
+                    }, 50);
+                }
+            }
+
+            // Interactive Shelf Canvas Drag Events for Compartments
+            function initShelfCanvasDragEvents(shelfObj) {
+                var cvs = document.getElementById('shelfCanvas');
+                var gridBg = document.getElementById('shelfGridBg');
+                var rb = document.getElementById('shelfDragRubberband');
+                if (!cvs) return;
+
+                var bgW = (100 / shelfObj.w);
+                var bgL = (100 / shelfObj.l);
+                gridBg.style.backgroundImage = 'linear-gradient(to right, rgba(16,185,129,0.18) 1px, transparent 1px), linear-gradient(to bottom, rgba(16,185,129,0.18) 1px, transparent 1px)';
+                gridBg.style.backgroundSize = bgW + '% ' + bgL + '%';
+
+                function getShelfGridCoords(e) {
+                    var rect = cvs.getBoundingClientRect();
+                    var clientX = e.touches ? e.touches[0].clientX : e.clientX;
+                    var clientY = e.touches ? e.touches[0].clientY : e.clientY;
+                    var relX = Math.min(rect.width, Math.max(0, clientX - rect.left));
+                    var relY = Math.min(rect.height, Math.max(0, clientY - rect.top));
+
+                    var gx = Math.floor((relX / rect.width) * shelfObj.w);
+                    var gy = Math.floor((relY / rect.height) * shelfObj.l);
+                    return { gx: Math.min(shelfObj.w - 1, Math.max(0, gx)), gy: Math.min(shelfObj.l - 1, Math.max(0, gy)) };
+                }
+
+                function onShelfPointerDown(e) {
+                    if (e.target.classList.contains('drawn-slot')) return;
+                    isCanvasDragging = true;
+                    var coords = getShelfGridCoords(e);
+                    dragStartGridX = coords.gx;
+                    dragStartGridY = coords.gy;
+
+                    updateShelfRubberband(coords.gx, coords.gy, coords.gx + 1, coords.gy + 1);
+                    rb.style.display = 'block';
+                }
+
+                function onShelfPointerMove(e) {
+                    if (!isCanvasDragging) return;
+                    e.preventDefault();
+                    var coords = getShelfGridCoords(e);
+                    var endX = coords.gx >= dragStartGridX ? coords.gx + 1 : coords.gx;
+                    var endY = coords.gy >= dragStartGridY ? coords.gy + 1 : coords.gy;
+                    var startX = coords.gx >= dragStartGridX ? dragStartGridX : dragStartGridX + 1;
+                    var startY = coords.gy >= dragStartGridY ? dragStartGridY : dragStartGridY + 1;
+
+                    updateShelfRubberband(startX, startY, endX, endY);
+                }
+
+                function onShelfPointerUp(e) {
+                    if (!isCanvasDragging) return;
+                    isCanvasDragging = false;
+                    rb.style.display = 'none';
+
+                    var rect = cvs.getBoundingClientRect();
+                    var clientX = e.changedTouches ? e.changedTouches[0].clientX : e.clientX;
+                    var clientY = e.changedTouches ? e.changedTouches[0].clientY : e.clientY;
+                    var relX = Math.min(rect.width, Math.max(0, clientX - rect.left));
+                    var relY = Math.min(rect.height, Math.max(0, clientY - rect.top));
+
+                    var endGridX = Math.min(shelfObj.w, Math.max(0, Math.round((relX / rect.width) * shelfObj.w)));
+                    var endGridY = Math.min(shelfObj.l, Math.max(0, Math.round((relY / rect.height) * shelfObj.l)));
+
+                    var x1 = Math.min(dragStartGridX, endGridX);
+                    var y1 = Math.min(dragStartGridY, endGridY);
+                    var x2 = Math.max(dragStartGridX, endGridX);
+                    var y2 = Math.max(dragStartGridY, endGridY);
+
+                    var compW = Math.max(1, x2 - x1);
+                    var compL = Math.max(1, y2 - y1);
+
+                    pendingDrawnSlotCoords = { x: x1, y: y1, w: compW, l: compL };
+                    openAddDrawnCompModal(pendingDrawnSlotCoords);
+                }
+
+                function updateShelfRubberband(x1, y1, x2, y2) {
+                    var minX = Math.min(x1, x2);
+                    var minY = Math.min(y1, y2);
+                    var maxX = Math.max(x1, x2);
+                    var maxY = Math.max(y1, y2);
+
+                    rb.style.left = ((minX / shelfObj.w) * 100) + '%';
+                    rb.style.top = ((minY / shelfObj.l) * 100) + '%';
+                    rb.style.width = (((maxX - minX) / shelfObj.w) * 100) + '%';
+                    rb.style.height = (((maxY - minY) / shelfObj.l) * 100) + '%';
+                }
+
+                cvs.onmousedown = onShelfPointerDown;
+                cvs.onmousemove = onShelfPointerMove;
+                window.onmouseup = onShelfPointerUp;
+
+                cvs.ontouchstart = onShelfPointerDown;
+                cvs.ontouchmove = onShelfPointerMove;
+                window.ontouchend = onShelfPointerUp;
+            }
+
+            window.onCompCanvasClick = function(cName, e) {
+                e.stopPropagation();
+                selectedHComp = cName;
+                renderHierarchyPage();
+            };
+
+            function openAddDrawnCompModal(coords) {
+                elemModalType = 'comp';
+                document.getElementById('elemModalTitle').textContent = 'Save Drawn Compartment Box';
+                document.getElementById('elemModalLabel').textContent = 'Compartment Name';
+                var comps = structRegistry.compartments[selectedHShelf] || [];
+                var nextChar = String.fromCharCode(65 + comps.length);
+                document.getElementById('elemNameInput').value = 'Compartment ' + nextChar;
+                document.getElementById('elemWidthInput').value = coords.w;
+                document.getElementById('elemLengthInput').value = coords.l;
+                document.getElementById('dimWrap').style.display = 'flex';
+                document.getElementById('dimCalcText').style.display = 'block';
+                document.getElementById('dimCalcText').textContent = 'Drawn Bounds: X:' + coords.x + ', Y:' + coords.y + ' | Size: ' + coords.w + ' × ' + coords.l + ' cm (' + (coords.w * coords.l) + ' cm²)';
+                document.getElementById('elemModal').classList.add('open');
+            }
+
+            // Interactive Graph Canvas Drag & Draw Events
+            function initCanvasDragEvents(boxObj) {
+                var cvs = document.getElementById('boxCanvas');
+                var gridBg = document.getElementById('canvasGridBg');
+                var rb = document.getElementById('dragRubberband');
+                if (!cvs) return;
+
+                // Setup CSS Grid Background matching Box W x L
+                var bgW = (100 / boxObj.w);
+                var bgL = (100 / boxObj.l);
+                gridBg.style.backgroundImage = 'linear-gradient(to right, rgba(148,163,184,0.18) 1px, transparent 1px), linear-gradient(to bottom, rgba(148,163,184,0.18) 1px, transparent 1px)';
+                gridBg.style.backgroundSize = bgW + '% ' + bgL + '%';
+
+                function getGridCoords(e) {
+                    var rect = cvs.getBoundingClientRect();
+                    var clientX = e.touches ? e.touches[0].clientX : e.clientX;
+                    var clientY = e.touches ? e.touches[0].clientY : e.clientY;
+                    var relX = Math.min(rect.width, Math.max(0, clientX - rect.left));
+                    var relY = Math.min(rect.height, Math.max(0, clientY - rect.top));
+
+                    var gx = Math.floor((relX / rect.width) * boxObj.w);
+                    var gy = Math.floor((relY / rect.height) * boxObj.l);
+                    return { gx: Math.min(boxObj.w - 1, Math.max(0, gx)), gy: Math.min(boxObj.l - 1, Math.max(0, gy)) };
+                }
+
+                function onPointerDown(e) {
+                    if (e.target.classList.contains('drawn-slot')) return;
+                    isCanvasDragging = true;
+                    var coords = getGridCoords(e);
+                    dragStartGridX = coords.gx;
+                    dragStartGridY = coords.gy;
+
+                    updateRubberband(coords.gx, coords.gy, coords.gx + 1, coords.gy + 1);
+                    rb.style.display = 'block';
+                }
+
+                function onPointerMove(e) {
+                    if (!isCanvasDragging) return;
+                    e.preventDefault();
+                    var coords = getGridCoords(e);
+                    var endX = coords.gx >= dragStartGridX ? coords.gx + 1 : coords.gx;
+                    var endY = coords.gy >= dragStartGridY ? coords.gy + 1 : coords.gy;
+                    var startX = coords.gx >= dragStartGridX ? dragStartGridX : dragStartGridX + 1;
+                    var startY = coords.gy >= dragStartGridY ? dragStartGridY : dragStartGridY + 1;
+
+                    updateRubberband(startX, startY, endX, endY);
+                }
+
+                function onPointerUp(e) {
+                    if (!isCanvasDragging) return;
+                    isCanvasDragging = false;
+                    rb.style.display = 'none';
+
+                    var rect = cvs.getBoundingClientRect();
+                    var clientX = e.changedTouches ? e.changedTouches[0].clientX : e.clientX;
+                    var clientY = e.changedTouches ? e.changedTouches[0].clientY : e.clientY;
+                    var relX = Math.min(rect.width, Math.max(0, clientX - rect.left));
+                    var relY = Math.min(rect.height, Math.max(0, clientY - rect.top));
+
+                    var endGridX = Math.min(boxObj.w, Math.max(0, Math.round((relX / rect.width) * boxObj.w)));
+                    var endGridY = Math.min(boxObj.l, Math.max(0, Math.round((relY / rect.height) * boxObj.l)));
+
+                    var x1 = Math.min(dragStartGridX, endGridX);
+                    var y1 = Math.min(dragStartGridY, endGridY);
+                    var x2 = Math.max(dragStartGridX, endGridX);
+                    var y2 = Math.max(dragStartGridY, endGridY);
+
+                    var slotW = Math.max(1, x2 - x1);
+                    var slotL = Math.max(1, y2 - y1);
+
+                    pendingDrawnSlotCoords = { x: x1, y: y1, w: slotW, l: slotL };
+                    openAddDrawnSlotModal(pendingDrawnSlotCoords);
+                }
+
+                function updateRubberband(x1, y1, x2, y2) {
+                    var minX = Math.min(x1, x2);
+                    var minY = Math.min(y1, y2);
+                    var maxX = Math.max(x1, x2);
+                    var maxY = Math.max(y1, y2);
+
+                    rb.style.left = ((minX / boxObj.w) * 100) + '%';
+                    rb.style.top = ((minY / boxObj.l) * 100) + '%';
+                    rb.style.width = (((maxX - minX) / boxObj.w) * 100) + '%';
+                    rb.style.height = (((maxY - minY) / boxObj.l) * 100) + '%';
+                }
+
+                cvs.onmousedown = onPointerDown;
+                cvs.onmousemove = onPointerMove;
+                window.onmouseup = onPointerUp;
+
+                cvs.ontouchstart = onPointerDown;
+                cvs.ontouchmove = onPointerMove;
+                window.ontouchend = onPointerUp;
+            }
+
+            window.onSlotCanvasClick = function(sName, e) {
+                e.stopPropagation();
+                var sKey = (selectedHShelf + '->' + cleanCompNameJS(selectedHComp) + '->' + selectedHBox).toLowerCase();
+                var slots = structRegistry.slots[sKey] || [];
+                var sObj = slots.find(function(s) {
+                    return (typeof s === 'string' ? s : s.name).toLowerCase() === sName.toLowerCase();
+                });
+                if (sObj) {
+                    toast('📍 ' + sName + ' Coordinates: X:' + (sObj.x || 0) + ' Y:' + (sObj.y || 0) + ' (' + sObj.w + '×' + sObj.l + 'cm)');
+                }
+            };
+
+            function openAddDrawnSlotModal(coords) {
+                elemModalType = 'slot';
+                document.getElementById('elemModalTitle').textContent = 'Save Drawn Slot Box';
+                document.getElementById('elemModalLabel').textContent = 'Slot Name';
+                var sKey = (selectedHShelf + '->' + cleanCompNameJS(selectedHComp) + '->' + selectedHBox).toLowerCase();
+                var currentSlots = structRegistry.slots[sKey] || [];
+                document.getElementById('elemNameInput').value = 'Slot ' + (currentSlots.length + 1);
+                document.getElementById('elemWidthInput').value = coords.w;
+                document.getElementById('elemLengthInput').value = coords.l;
+                document.getElementById('dimWrap').style.display = 'flex';
+                document.getElementById('dimCalcText').style.display = 'block';
+                document.getElementById('dimCalcText').textContent = 'Drawn Coordinates: X:' + coords.x + ', Y:' + coords.y + ' | Size: ' + coords.w + ' × ' + coords.l + ' cm (' + (coords.w * coords.l) + ' cm²)';
+                document.getElementById('elemModal').classList.add('open');
+            }
+
+            window.updateDimCalcText = function() {
+                var el = document.getElementById('dimCalcText');
+                var w = parseInt(document.getElementById('elemWidthInput').value, 10) || 0;
+                var l = parseInt(document.getElementById('elemLengthInput').value, 10) || 0;
+                var area = w * l;
+
+                if (elemModalType === 'shelf') {
+                    el.textContent = 'Total Shelf Area: ' + w + ' × ' + l + ' cm = ' + area + ' cm²';
+                } else if (elemModalType === 'comp') {
+                    var x = pendingDrawnSlotCoords ? pendingDrawnSlotCoords.x : 0;
+                    var y = pendingDrawnSlotCoords ? pendingDrawnSlotCoords.y : 0;
+                    el.textContent = 'Compartment Bounds: X:' + x + ', Y:' + y + ' | Size: ' + w + ' × ' + l + ' cm = ' + area + ' cm²';
+                } else if (elemModalType === 'box') {
+                    el.textContent = 'Total Box Area: ' + w + ' × ' + l + ' cm = ' + area + ' cm²';
+                } else if (elemModalType === 'slot') {
+                    var x = pendingDrawnSlotCoords ? pendingDrawnSlotCoords.x : 0;
+                    var y = pendingDrawnSlotCoords ? pendingDrawnSlotCoords.y : 0;
+                    el.textContent = 'Slot Bounds: X:' + x + ', Y:' + y + ' | Size: ' + w + ' × ' + l + ' cm = ' + area + ' cm²';
+                }
+            };
+
+            // Structure Modification Actions
+            window.openAddShelfModal = function() {
+                elemModalType = 'shelf';
+                document.getElementById('elemModalTitle').textContent = 'Add New Shelf';
+                document.getElementById('elemModalLabel').textContent = 'Shelf Name';
+                document.getElementById('elemNameInput').value = 'Shelf ' + (structRegistry.shelves.length + 1);
+                document.getElementById('dimWrap').style.display = 'none';
+                document.getElementById('elemShapeWrap').style.display = 'none';
+                document.getElementById('dimCalcText').style.display = 'none';
+                document.getElementById('elemModal').classList.add('open');
+            };
+
+            window.deleteCurrentShelf = function() {
+                if (structRegistry.shelves.length <= 1) {
+                    toast('⚠️ At least one shelf must exist');
+                    return;
+                }
+                var count = items.filter(function(i) { return i.shelf.toLowerCase() === selectedHShelf.toLowerCase(); }).length;
+                var msg = 'Delete "' + selectedHShelf + '"?';
+                if (count > 0) msg = '⚠️ Warning: "' + selectedHShelf + '" contains ' + count + ' items! Delete shelf?';
+                if (!confirm(msg)) return;
+
+                var idx = structRegistry.shelves.findIndex(function(sh) {
+                    return (typeof sh === 'string' ? sh : sh.name).toLowerCase() === selectedHShelf.toLowerCase();
+                });
+                if (idx !== -1) structRegistry.shelves.splice(idx, 1);
+                delete structRegistry.compartments[selectedHShelf];
+                var nextSh = getShelfObj(structRegistry.shelves[0]);
+                selectedHShelf = nextSh.name;
+                selectedHComp = 'Compartment A';
+                selectedHBox = null;
+                saveStructure();
+                toast('🗑️ Shelf deleted');
+                renderHierarchyPage();
+            };
+
+            function initCanvasResizeHandler() {
+                var resizer = document.getElementById('shelfCanvasResizer');
+                var canvas = document.getElementById('shelfCanvas');
+                if (!resizer || !canvas) return;
+                
+                var startY, startHeight;
+                
+                function onPointerDown(e) {
+                    startY = e.touches ? e.touches[0].clientY : e.clientY;
+                    startHeight = parseInt(document.defaultView.getComputedStyle(canvas).height, 10);
+                    document.addEventListener('pointermove', onPointerMove);
+                    document.addEventListener('pointerup', onPointerUp);
+                    e.preventDefault();
+                }
+                
+                function onPointerMove(e) {
+                    var clientY = e.touches ? e.touches[0].clientY : e.clientY;
+                    var dy = clientY - startY;
+                    var newH = Math.max(300, Math.min(800, startHeight + dy));
+                    canvas.style.height = newH + 'px';
+                }
+                
+                function onPointerUp() {
+                    document.removeEventListener('pointermove', onPointerMove);
+                    document.removeEventListener('pointerup', onPointerUp);
+                }
+                
+                resizer.onpointerdown = onPointerDown;
+            }
+
+            function initShelfCanvasDragEvents() {
+                var canvas = document.getElementById('shelfCanvas');
+                var rubberband = document.getElementById('shelfDragRubberband');
+                if (!canvas || !rubberband) return;
+
+                var isDragging = false;
+                var startX = 0, startY = 0;
+
+                canvas.onpointerdown = function(e) {
+                    if (e.target !== canvas && e.target !== document.getElementById('shelfGridBg')) return;
+                    isDragging = true;
+                    var rect = canvas.getBoundingClientRect();
+                    startX = e.clientX - rect.left;
+                    startY = e.clientY - rect.top;
+
+                    rubberband.style.left = startX + 'px';
+                    rubberband.style.top = startY + 'px';
+                    rubberband.style.width = '0px';
+                    rubberband.style.height = '0px';
+                    rubberband.style.display = 'block';
+
+                    if (canvas.setPointerCapture) canvas.setPointerCapture(e.pointerId);
+                };
+
+                canvas.onpointermove = function(e) {
+                    if (!isDragging) return;
+                    var rect = canvas.getBoundingClientRect();
+                    var currentX = e.clientX - rect.left;
+                    var currentY = e.clientY - rect.top;
+
+                    var left = Math.min(startX, currentX);
+                    var top = Math.min(startY, currentY);
+                    var width = Math.abs(currentX - startX);
+                    var height = Math.abs(currentY - startY);
+
+                    rubberband.style.left = left + 'px';
+                    rubberband.style.top = top + 'px';
+                    rubberband.style.width = width + 'px';
+                    rubberband.style.height = height + 'px';
+                };
+
+                canvas.onpointerup = function(e) {
+                    if (!isDragging) return;
+                    isDragging = false;
+                    rubberband.style.display = 'none';
+
+                    var rect = canvas.getBoundingClientRect();
+                    var currentX = e.clientX - rect.left;
+                    var currentY = e.clientY - rect.top;
+
+                    var left = Math.min(startX, currentX);
+                    var top = Math.min(startY, currentY);
+                    var width = Math.abs(currentX - startX);
+                    var height = Math.abs(currentY - startY);
+
+                    if (width < 15 || height < 15) return;
+
+                    var pctX = Math.round((left / rect.width) * 100);
+                    var pctY = Math.round((top / rect.height) * 100);
+                    var pctW = Math.round((width / rect.width) * 100);
+                    var pctH = Math.round((height / rect.height) * 100);
+
+                    pendingDrawnSlotCoords = { x: pctX, y: pctY, w: pctW, h: pctH };
+                    openAddDrawnCompModal(pendingDrawnSlotCoords);
+                };
+
+                initCanvasResizeHandler();
+            }
+
+            window.openAddDrawnCompModal = function(coords) {
+                elemModalType = 'comp';
+                document.getElementById('elemModalTitle').textContent = 'Save Drawn Compartment';
+                document.getElementById('elemModalLabel').textContent = 'Compartment Name';
+                var comps = structRegistry.compartments[selectedHShelf] || [];
+                var nextChar = String.fromCharCode(65 + comps.length);
+                document.getElementById('elemNameInput').value = 'Compartment ' + nextChar;
+                document.getElementById('dimWrap').style.display = 'none';
+                document.getElementById('elemShapeWrap').style.display = 'none';
+                document.getElementById('elemGridPosWrap').style.display = 'none';
+                document.getElementById('dimCalcText').style.display = 'none';
+                document.getElementById('elemModal').classList.add('open');
+            };
+
+            window.openAddCompModal = function() {
+                pendingDrawnSlotCoords = { x: 5, y: 5, w: 30, h: 65 };
+                openAddDrawnCompModal(pendingDrawnSlotCoords);
+            };
+
+            window.deleteCurrentComp = function() {
+                var comps = structRegistry.compartments[selectedHShelf] || [];
+                if (comps.length === 0) {
+                    toast('⚠️ No compartments exist to delete');
+                    return;
+                }
+                var count = items.filter(function(i) {
+                    return i.shelf.toLowerCase() === selectedHShelf.toLowerCase() && i.compartment.toLowerCase() === (selectedHComp || '').toLowerCase();
+                }).length;
+
+                var msg = 'Delete "' + selectedHComp + '" from ' + selectedHShelf + '?';
+                if (count > 0) msg = '⚠️ Warning: "' + selectedHComp + '" contains ' + count + ' items! Delete compartment?';
+                if (!confirm(msg)) return;
+
+                var idx = comps.findIndex(function(co) {
+                    return (typeof co === 'string' ? co : co.name).toLowerCase() === (selectedHComp || '').toLowerCase();
+                });
+                if (idx !== -1) comps.splice(idx, 1);
+                var bKey = (selectedHShelf + '->' + cleanCompNameJS(selectedHComp)).toLowerCase();
+                delete structRegistry.boxes[bKey];
+                var nextCo = comps.length > 0 ? getCompObj(comps[0]) : null;
+                selectedHComp = nextCo ? nextCo.name : null;
+                selectedHBox = null;
+                saveStructure();
+                toast('🗑️ Compartment deleted');
+                renderHierarchyPage();
+            };
+
+            window.openEditCompModal = function(cName) {
+                var targetComp = cName || selectedHComp || 'Compartment A';
+                var newCompName = prompt('Edit Compartment Name:', targetComp);
+                if (!newCompName || !newCompName.trim()) return;
+                newCompName = newCompName.trim();
+
+                var comps = structRegistry.compartments[selectedHShelf] || [];
+                var cObj = comps.find(function(c) {
+                    return (typeof c === 'string' ? c : c.name).toLowerCase() === targetComp.toLowerCase();
+                });
+                if (cObj) {
+                    if (typeof cObj === 'string') {
+                        cObj = { name: newCompName, x: 5, y: 5, w: 40, h: 60 };
+                    } else {
+                        cObj.name = newCompName;
+                    }
+                }
+
+                var oldBKey = (selectedHShelf + '->' + cleanCompNameJS(targetComp)).toLowerCase();
+                var newBKey = (selectedHShelf + '->' + cleanCompNameJS(newCompName)).toLowerCase();
+                if (oldBKey !== newBKey && structRegistry.boxes[oldBKey]) {
+                    structRegistry.boxes[newBKey] = structRegistry.boxes[oldBKey];
+                    delete structRegistry.boxes[oldBKey];
+                }
+
+                items.forEach(function(i) {
+                    if (i.shelf.toLowerCase() === selectedHShelf.toLowerCase() && i.compartment.toLowerCase() === targetComp.toLowerCase()) {
+                        i.compartment = newCompName;
+                    }
+                });
+
+                selectedHComp = newCompName;
+                saveStructure();
+                toast('✏️ Compartment updated to "' + newCompName + '"');
+                renderHierarchyPage();
+            };
+
+            window.openAssignBoxModal = function() {
+                var bKey = (selectedHShelf + '->' + cleanCompNameJS(selectedHComp)).toLowerCase();
+                var existingBoxNames = [];
+                items.forEach(function(i) {
+                    var bName = i.box || ('box ' + (i.boxNum || 1));
+                    if (existingBoxNames.indexOf(bName) === -1) existingBoxNames.push(bName);
+                });
+                for (var key in structRegistry.boxes) {
+                    (structRegistry.boxes[key] || []).forEach(function(b) {
+                        var bName = typeof b === 'string' ? b : b.name;
+                        if (existingBoxNames.indexOf(bName) === -1) existingBoxNames.push(bName);
+                    });
+                }
+                if (existingBoxNames.length === 0) {
+                    for (var bNum = 1; bNum <= 30; bNum++) existingBoxNames.push('box ' + bNum);
+                }
+
+                var selectedBox = prompt('Select box to assign to ' + selectedHComp + ':\nAvailable: ' + existingBoxNames.join(', '), existingBoxNames[0]);
+                if (!selectedBox || !selectedBox.trim()) return;
+                selectedBox = selectedBox.trim();
+
+                if (!structRegistry.boxes[bKey]) structRegistry.boxes[bKey] = [];
+                var bExists = structRegistry.boxes[bKey].some(function(b) {
+                    return (typeof b === 'string' ? b : b.name).toLowerCase() === selectedBox.toLowerCase();
+                });
+                if (!bExists) {
+                    structRegistry.boxes[bKey].push({ name: selectedBox, w: 22, l: 15 });
+                }
+
+                items.forEach(function(i) {
+                    if ((i.box || '').toLowerCase() === selectedBox.toLowerCase()) {
+                        i.shelf = selectedHShelf;
+                        i.compartment = selectedHComp;
+                    }
+                });
+
+                saveStructure();
+                toast('📦 Assigned "' + selectedBox + '" to ' + selectedHComp);
+                renderHierarchyPage();
+            };
+
+            window.openAddBoxModal = function() {
+                elemModalType = 'box';
+                document.getElementById('elemModalTitle').textContent = 'Add Container Box with Dimensions';
+                document.getElementById('elemModalLabel').textContent = 'Box Name';
+                var bKey = (selectedHShelf + '->' + cleanCompNameJS(selectedHComp)).toLowerCase();
+                var currentBoxes = structRegistry.boxes[bKey] || [];
+                document.getElementById('elemNameInput').value = 'box ' + (currentBoxes.length + 1);
+                document.getElementById('elemWidthInput').value = 30;
+                document.getElementById('elemLengthInput').value = 40;
+                document.getElementById('dimWrap').style.display = 'flex';
+                document.getElementById('elemShapeWrap').style.display = 'none';
+                document.getElementById('dimCalcText').style.display = 'block';
+                updateDimCalcText();
+                document.getElementById('elemModal').classList.add('open');
+            };
+
+            window.deleteBox = function(bName) {
+                var bKey = (selectedHShelf + '->' + cleanCompNameJS(selectedHComp)).toLowerCase();
+                var currentBoxes = structRegistry.boxes[bKey] || [];
+                var count = items.filter(function(i) {
+                    return i.shelf.toLowerCase() === selectedHShelf.toLowerCase() &&
+                        i.compartment.toLowerCase() === selectedHComp.toLowerCase() &&
+                        i.box.toLowerCase() === bName.toLowerCase();
+                }).length;
+
+                var msg = 'Delete "' + bName + '"?';
+                if (count > 0) msg = '⚠️ Warning: "' + bName + '" contains ' + count + ' items! Delete container?';
+                if (!confirm(msg)) return;
+
+                var idx = currentBoxes.findIndex(function(b) {
+                    return (typeof b === 'string' ? b : b.name).toLowerCase() === bName.toLowerCase();
+                });
+                if (idx !== -1) currentBoxes.splice(idx, 1);
+                var sKey = (selectedHShelf + '->' + cleanCompNameJS(selectedHComp) + '->' + bName).toLowerCase();
+                delete structRegistry.slots[sKey];
+                saveStructure();
+                toast('🗑️ Box deleted');
+                renderHierarchyPage();
+            };
+
+            window.openAddSlotModal = function() {
+                pendingDrawnSlotCoords = { x: 0, y: 0, w: 10, l: 10 };
+                openAddDrawnSlotModal(pendingDrawnSlotCoords);
+            };
+
+            window.deleteSlot = function(sName) {
+                var sKey = (selectedHShelf + '->' + cleanCompNameJS(selectedHComp) + '->' + selectedHBox).toLowerCase();
+                var currentSlots = structRegistry.slots[sKey] || [];
+                var count = items.filter(function(i) {
+                    return i.shelf.toLowerCase() === selectedHShelf.toLowerCase() &&
+                        i.compartment.toLowerCase() === selectedHComp.toLowerCase() &&
+                        i.box.toLowerCase() === selectedHBox.toLowerCase() &&
+                        i.slot.toLowerCase() === sName.toLowerCase();
+                }).length;
+
+                var msg = 'Delete "' + sName + '"?';
+                if (count > 0) msg = '⚠️ Warning: "' + sName + '" contains ' + count + ' items! Delete slot?';
+                if (!confirm(msg)) return;
+
+                var idx = currentSlots.findIndex(function(s) {
+                    return (typeof s === 'string' ? s : s.name).toLowerCase() === sName.toLowerCase();
+                });
+                if (idx !== -1) currentSlots.splice(idx, 1);
+                saveStructure();
+                toast('🗑️ Slot deleted');
+                renderHierarchyPage();
+            };
+
+            window.closeElemModal = function() {
+                document.getElementById('elemModal').classList.remove('open');
+                pendingDrawnSlotCoords = null;
+            };
+
+            window.resetLayoutCache = function() {
+                if (confirm('⚠️ Warning: This will clear all custom drawn slot boundaries and revert layout structures to their default coordinates. Do you want to proceed?')) {
+                    localStorage.removeItem('smartrack_structure_v5');
+                    toast('♻️ Layout cache cleared. Reloading...');
+                    setTimeout(function() { location.reload(); }, 1000);
+                }
+            };
+
+            window.submitElemModal = function() {
+                var val = document.getElementById('elemNameInput').value.trim();
+                if (!val) { toast('⚠️ Please enter a name'); return; }
+
+                var w = parseInt(document.getElementById('elemWidthInput').value, 10) || 10;
+                var l = parseInt(document.getElementById('elemLengthInput').value, 10) || 10;
+
+                if (elemModalType === 'shelf') {
+                    var sIdx = structRegistry.shelves.findIndex(function(sh) {
+                        return (typeof sh === 'string' ? sh : sh.name).toLowerCase() === val.toLowerCase();
+                    });
+                    if (sIdx === -1) {
+                        structRegistry.shelves.push({ name: val });
+                        structRegistry.compartments[val] = [];
+                        selectedHShelf = val;
+                        selectedHComp = null;
+                        selectedHBox = null;
+                        toast('✅ Shelf created: ' + val);
+                    }
+                } else if (elemModalType === 'comp') {
+                    if (!structRegistry.compartments[selectedHShelf]) structRegistry.compartments[selectedHShelf] = [];
+                    var currentComps = structRegistry.compartments[selectedHShelf];
+
+                    var x = pendingDrawnSlotCoords ? pendingDrawnSlotCoords.x : 0;
+                    var y = pendingDrawnSlotCoords ? pendingDrawnSlotCoords.y : 0;
+                    var w = pendingDrawnSlotCoords ? pendingDrawnSlotCoords.w : 45;
+                    var h = pendingDrawnSlotCoords ? (pendingDrawnSlotCoords.h || pendingDrawnSlotCoords.l || 40) : 40;
+
+                    var cleanVal = cleanCompNameJS(val);
+
+                    var cIdx = currentComps.findIndex(function(co) {
+                        return (typeof co === 'string' ? co : co.name).toLowerCase() === cleanVal.toLowerCase();
+                    });
+
+                    var compObj = { name: cleanVal, x: x, y: y, w: w, h: h };
+
+                    if (cIdx !== -1) {
+                        currentComps[cIdx] = compObj;
+                        toast('✅ Updated compartment boundary: ' + cleanVal);
+                    } else {
+                        currentComps.push(compObj);
+                        toast('✅ Saved drawn compartment: ' + cleanVal);
+                    }
+                    selectedHComp = cleanVal;
+                    selectedHBox = null;
+                } else if (elemModalType === 'box') {
+                    var bKey = (selectedHShelf + '->' + cleanCompNameJS(selectedHComp)).toLowerCase();
+                    if (!structRegistry.boxes[bKey]) structRegistry.boxes[bKey] = [];
+                    var bExists = structRegistry.boxes[bKey].some(function(b) {
+                        return (typeof b === 'string' ? b : b.name).toLowerCase() === val.toLowerCase();
+                    });
+                    if (!bExists) {
+                        structRegistry.boxes[bKey].push({ name: val, w: w, l: l });
+                        toast('✅ Container box created: ' + val + ' (' + w + '×' + l + ' cm)');
+                    }
+                } else if (elemModalType === 'slot') {
+                    var sKey = (selectedHShelf + '->' + cleanCompNameJS(selectedHComp) + '->' + selectedHBox).toLowerCase();
+                    if (!structRegistry.slots[sKey]) structRegistry.slots[sKey] = [];
+                    var currentSlots = structRegistry.slots[sKey];
+
+                    var x = pendingDrawnSlotCoords ? pendingDrawnSlotCoords.x : 0;
+                    var y = pendingDrawnSlotCoords ? pendingDrawnSlotCoords.y : 0;
+
+                    var sIdx = currentSlots.findIndex(function(s) {
+                        return (typeof s === 'string' ? s : s.name).toLowerCase() === val.toLowerCase();
+                    });
+
+                    var slotObj = { name: val, x: x, y: y, w: w, l: l };
+
+                    if (sIdx !== -1) {
+                        currentSlots[sIdx] = slotObj;
+                        toast('✅ Updated slot boundary: ' + val);
+                    } else {
+                        currentSlots.push(slotObj);
+                        toast('✅ Saved drawn slot: ' + val + ' (X:' + x + ' Y:' + y + ')');
+                    }
+                }
+
+                saveStructure();
+                closeElemModal();
+                renderHierarchyPage();
+            };
+
+            // Dynamic Form Location Population (Add/Edit Item Modal)
+            function populateFormLocationDropdowns(shVal, coVal, bxVal, slVal) {
+                var fs = document.getElementById('fshelf');
+                fs.innerHTML = '';
+                structRegistry.shelves.forEach(function(sh) {
+                    var shObj = getShelfObj(sh);
+                    var o = document.createElement('option');
+                    o.value = shObj.name;
+                    o.textContent = shObj.name;
+                    if (shObj.name.toLowerCase() === (shVal || '').toLowerCase()) o.selected = true;
+                    fs.appendChild(o);
+                });
+                var activeSh = fs.value || getShelfObj(structRegistry.shelves[0]).name;
+
+                var fco = document.getElementById('fcomp');
+                fco.innerHTML = '';
+                var comps = (structRegistry.compartments[activeSh] || [{ name: 'Compartment A', shape: 'rect-h' }]).filter(function(c) {
+                    var cName = (typeof c === 'string' ? c : (c.name || '')).toLowerCase().trim();
+                    return cName.indexOf('slot ') !== 0 && cName.indexOf('box ') !== 0;
+                });
+                if (comps.length === 0) comps = [{ name: 'Compartment A', shape: 'rect-h' }];
+                comps.forEach(function(co) {
+                    var coObj = getCompObj(co);
+                    var o = document.createElement('option');
+                    o.value = coObj.name;
+                    o.textContent = coObj.name;
+                    if (coObj.name.toLowerCase() === (coVal || '').toLowerCase()) o.selected = true;
+                    fco.appendChild(o);
+                });
+                var activeCo = fco.value || getCompObj(comps[0]).name;
+
+                var fb = document.getElementById('fbox');
+                fb.innerHTML = '';
+                var bKey = (activeSh + '->' + cleanCompNameJS(activeCo)).toLowerCase();
+                var rawBoxes = structRegistry.boxes[bKey] || [];
+                if (rawBoxes.length === 0) {
+                    var bNames = [];
+                    items.forEach(function(it) {
+                        if (it.shelf.toLowerCase() === activeSh.toLowerCase() && it.compartment.toLowerCase() === activeCo.toLowerCase()) {
+                            if (it.box && bNames.indexOf(it.box) === -1) bNames.push(it.box);
+                        }
+                    });
+                    rawBoxes = bNames.map(function(bn) { return { name: bn, w: 22, l: 15 }; });
+                }
+
+                rawBoxes.forEach(function(bRaw) {
+                    var bObj = getBoxObj(bRaw);
+                    var o = document.createElement('option');
+                    o.value = bObj.name;
+                    o.textContent = bObj.name;
+                    if (bObj.name.toLowerCase() === (bxVal || '').toLowerCase()) o.selected = true;
+                    fb.appendChild(o);
+                });
+                var activeBx = fb.value || (rawBoxes[0] ? (typeof rawBoxes[0] === 'string' ? rawBoxes[0] : rawBoxes[0].name) : '');
+
+                var fsl = document.getElementById('fsl');
+                fsl.innerHTML = '';
+                var sKey = (activeSh + '->' + cleanCompNameJS(activeCo) + '->' + activeBx).toLowerCase();
+                var rawSlots = structRegistry.slots[sKey] || [];
+                if (rawSlots.length === 0) {
+                    var sNames = [];
+                    items.forEach(function(it) {
+                        if (it.shelf.toLowerCase() === activeSh.toLowerCase() && it.compartment.toLowerCase() === activeCo.toLowerCase() && (it.box || '').toLowerCase() === activeBx.toLowerCase()) {
+                            if (it.slot && sNames.indexOf(it.slot) === -1) sNames.push(it.slot);
+                        }
+                    });
+                    if (sNames.length === 0) {
+                        for (var sNum = 1; sNum <= 33; sNum++) sNames.push('Slot ' + sNum);
+                    }
+                    rawSlots = sNames.map(function(sn) { return { name: sn }; });
+                }
+
+                rawSlots.forEach(function(sRaw) {
+                    var sObj = getSlotObj(sRaw);
+                    var o = document.createElement('option');
+                    o.value = sObj.name;
+                    o.textContent = sObj.name;
+                    if (sObj.name.toLowerCase() === (slVal || '').toLowerCase()) o.selected = true;
+                    fsl.appendChild(o);
+                });
+            }
+
+            window.onFormShelfChange = function(sh) {
+                populateFormLocationDropdowns(sh, null, null, null);
+            };
+
+            window.onFormCompChange = function(co) {
+                var sh = document.getElementById('fshelf').value;
+                populateFormLocationDropdowns(sh, co, null, null);
+            };
+
+            window.onFormBoxChange = function(bx) {
+                var sh = document.getElementById('fshelf').value;
+                var co = document.getElementById('fcomp').value;
+                populateFormLocationDropdowns(sh, co, bx, null);
+            };
+
+            // Global Actions
+            window.changeRackBox = function (val) {
+                selectedRackBox = parseInt(val, 10);
+                renderMainPage();
+            };
+
+            window.onHShelfChange = function (val) {
+                selectedHShelf = val;
+                selectedHBox = null;
+                renderHierarchyPage();
+            };
+
+            window.onHCompChange = function (val) {
+                selectedHComp = val;
+                selectedHBox = null;
+                renderHierarchyPage();
+            };
+
+            window.openHBox = function (b) {
+                selectedHBox = b;
+                renderHierarchyPage();
+            };
+
+            window.closeHBox = function () {
+                selectedHBox = null;
+                renderHierarchyPage();
+            };
+
+            window.triggerSync = function () {
+                toast('☁️ Syncing inventory to Google Sheets...');
+                fetch('/sync', { method: 'POST' })
+                    .then(function (r) { return r.text(); })
+                    .then(function (msg) { toast('✅ ' + msg); })
+                    .catch(function () { toast('❌ Sync failed'); });
+            };
+
+            window.triggerFetch = function() {
+                showSyncOverlay('📥 Triggering fetch from Google Sheets...<br><br>' +
+                                '<span style="font-size:0.9rem; font-weight:normal; opacity:0.85;">' +
+                                'The ESP8266 is now connecting to your Wi-Fi router. ' +
+                                'Your device will disconnect from the ESP8266 Access Point network temporarily.<br><br>' +
+                                '<b>Please ensure you reconnect your device to the ESP8266 AP network in about 20-30 seconds</b>, ' +
+                                'and this page will automatically reload once connection is restored.' +
+                                '</span>');
+                                
+                fetch('/fetch')
+                    .then(function(r) { return r.text(); })
+                    .then(function(msg) {
+                        // Start polling after 15 seconds
+                        setTimeout(function() { reloadAfterCloudFetch(12); }, 15000);
+                    })
+                    .catch(function() {
+                        hideSyncOverlay();
+                        toast('❌ Cloud fetch failed');
+                    });
+            };
+
+            window.openAddModal = function () {
+                editingItemId = null;
+                document.getElementById('mtitle').textContent = 'Add New Item';
+                document.getElementById('fn').value = '';
+                document.getElementById('fq').value = '1';
+                document.getElementById('fns').checked = false;
+                document.getElementById('fret').checked = false;
+                populateFormLocationDropdowns('Shelf 1', 'Compartment A', 'box 1', 'Slot 1');
+                toggleNonSmart(false);
+                document.getElementById('addEditModal').classList.add('open');
+            };
+
+            window.openEditModal = function (id) {
+                var item = items.find(function (i) { return i.id === id; });
+                if (!item) return;
+                editingItemId = id;
+                document.getElementById('mtitle').textContent = 'Edit Item';
+                document.getElementById('fn').value = item.name;
+                document.getElementById('fc').value = item.category;
+                document.getElementById('fq').value = item.quantity;
+                document.getElementById('fns').checked = !item.isSmart;
+                document.getElementById('fret').checked = item.isReturnable;
+                populateFormLocationDropdowns(item.shelf, item.compartment, item.box, item.slot);
+                toggleNonSmart(!item.isSmart);
+                document.getElementById('addEditModal').classList.add('open');
+            };
+
+            window.closeAddEditModal = function () {
+                document.getElementById('addEditModal').classList.remove('open');
+            };
+
+            window.toggleNonSmart = function (checked) {
+                document.getElementById('fslWrap').style.display = checked ? 'none' : 'block';
+            };
+
+            window.saveItem = function () {
+                var name = document.getElementById('fn').value.trim();
+                if (!name) { toast('âš ï¸ Item Name required'); return; }
+
+                var cat = document.getElementById('fc').value;
+                var qty = parseInt(document.getElementById('fq').value, 10) || 1;
+                var isSmart = !document.getElementById('fns').checked;
+                var isReturnable = document.getElementById('fret').checked;
+                var shelf = document.getElementById('fshelf').value || 'Shelf 1';
+                var comp = document.getElementById('fcomp').value || 'Compartment A';
+                var box = document.getElementById('fbox').value || 'Box 1';
+                var slot = document.getElementById('fsl').value || 'Slot 1';
+
+                var boxNumMatch = box.match(/\d+/);
+                var boxNum = boxNumMatch ? parseInt(boxNumMatch[0], 10) : 1;
+                var slotNumMatch = slot.match(/\d+/);
+                var subBox = slotNumMatch ? parseInt(slotNumMatch[0], 10) : 1;
+
+                var boxSpec = getBoxSpecFromData(boxNum);
+                var calcRow = Math.floor((subBox - 1) / boxSpec.cols) + 1;
+                var calcCol = ((subBox - 1) % boxSpec.cols) + 1;
+
+                var newItemId = editingItemId || (items.length > 0 ? Math.max.apply(Math, items.map(function (i) { return i.id; })) + 1 : 1);
+
+                var payload = {
+                    id: newItemId,
+                    name: name,
+                    category: cat,
+                    quantity: qty,
+                    isSmart: isSmart,
+                    isReturnable: isReturnable,
+                    shelf: shelf,
+                    compartment: comp,
+                    box: box,
+                    boxNum: boxNum,
+                    slot: slot,
+                    subBox: subBox,
+                    row: isSmart ? calcRow : 0,
+                    col: isSmart ? calcCol : 0
+                };
+
+                toast('⏳ Saving item to Google Sheets...');
+                fetch(GOOGLE_SCRIPT_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: { 'Content-Type': 'text/plain' },
+                    body: JSON.stringify(payload)
+                }).then(function () {
+                    toast('✅ Item saved to Google Sheets');
+                    closeAddEditModal();
+                    setTimeout(fetchInventory, 1200);
+                }).catch(function() {
+                    toast('✅ Item saved');
+                    closeAddEditModal();
+                    setTimeout(fetchInventory, 1200);
+                });
+            };
+
+            var isESP = location.hostname !== 'localhost' && 
+            location.hostname.indexOf('github.io') === -1 && 
+            location.protocol !== 'file:';
+
+            window.syncToCloud = function() {
+                // Browser POSTs directly to Google Sheets -- no ESP memory limit.
+                // Works for 400+ items. ESP /sync endpoint is no longer used.
+                var itemCount = items.length;
+                showSyncOverlay('☁️ Syncing ' + itemCount + ' items to Google Sheets...\nPlease keep this page open (~10–20 seconds).');
+
+                var minItems = items.map(function(item) {
+                    return {
+                        id: item.id, name: item.name,
+                        category: item.category || 'Electronics',
+                        quantity: item.quantity || 0,
+                        shelf: item.shelf || 'Shelf 1',
+                        compartment: item.compartment || 'A',
+                        boxNum: item.boxNum || 1, subBox: item.subBox || 1,
+                        row: item.row || 0, col: item.col || 0,
+                        isSmart: !!item.isSmart, isReturnable: !!item.isReturnable,
+                        borrower: item.borrower || '', returnDate: item.returnDate || '',
+                        borrowedQty: item.borrowedQty || 0
+                    };
+                });
+
+                fetch(GOOGLE_SCRIPT_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ items: minItems, structure: structRegistry }),
+                    redirect: 'follow'
+                })
+                .then(function(r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+                .then(function(data) {
+                    hideSyncOverlay();
+                    if (data && data.status === 'success') {
+                        toast('✅ Synced ' + itemCount + ' items to Google Sheets!');
+                    } else {
+                        toast('⚠️ Sync: ' + JSON.stringify(data));
+                    }
+                })
+                .catch(function(err) {
+                    hideSyncOverlay();
+                    toast('❌ Sync failed: ' + (err.message || String(err)));
+                });
+            };
+
+            window.fetchFromCloud = function() {
+                showSyncOverlay('📥 Triggering ESP8266 Cloud Fetch...\nThe ESP8266 will connect to Wi-Fi to fetch from Google Sheets (~20-30 seconds).');
+                fetch('/fetch')
+                    .then(function(r) { return r.text(); })
+                    .then(function(msg) {
+                        toast('✅ Fetch initiated on ESP8266: ' + msg);
+                        setTimeout(function() { hideSyncOverlay(); fetchInventory(); }, 15000);
+                    })
+                    .catch(function(err) {
+                        hideSyncOverlay();
+                        toast('⚠️ Fetch request sent to ESP8266');
+                    });
+            };
+
+            window.deleteItem = function (id) {
+                if (!confirm('Delete this item?')) return;
+                fetch('/inventory?id=' + encodeURIComponent(id), { method: 'DELETE' }).then(function (r) {
+                    if (!r.ok) throw new Error('Delete failed');
+                    toast('🗑️ Item deleted');
+                    fetchInventory();
+                }).catch(function () { toast('❌ Could not delete item'); });
+            };
+
+            window.openLocateModal = function (id) {
+                var item = items.find(function (i) { return i.id === id; });
+                if (!item) return;
+                locateItemData = item;
+
+                document.getElementById('locItemName').textContent = item.name;
+                document.getElementById('locItemCat').textContent = item.category;
+                document.getElementById('locAvailableStock').textContent = item.quantity + ' units';
+                document.getElementById('locateQtyInput').value = 1;
+
+                var retFields = document.getElementById('returnableFields');
+                retFields.style.display = item.isReturnable ? 'flex' : 'none';
+
+                activeId = item.id;
+                selectedRackBox = item.boxNum || 1;
+                var sel = document.getElementById('rack-box-select');
+                if (sel) sel.value = selectedRackBox;
+
+                clearTimeout(window._ledOffTimer);
+                window._ledOffTimer = setTimeout(function() {
+                    activeId = null;
+                    render();
+                }, 10000);
+
+                document.getElementById('locateModal').classList.add('open');
+                render();
+            };
+
+            window.closeLocateModal = function () {
+                document.getElementById('locateModal').classList.remove('open');
+                locateItemData = null;
+                clearTimeout(window._ledOffTimer);
+                activeId = null;
+                render();
+            };
+
+            window.adjustLocateQty = function (amt) {
+                if (!locateItemData) return;
+                var inp = document.getElementById('locateQtyInput');
+                var val = parseInt(inp.value, 10) + amt;
+                if (val >= 1 && val <= locateItemData.quantity) inp.value = val;
+            };
+
+            window.setLocateQtyMax = function () {
+                if (!locateItemData) return;
+                document.getElementById('locateQtyInput').value = locateItemData.quantity;
+            };
+
+            window.confirmLocateDeduct = function () {
+                if (!locateItemData) return;
+                var taken = parseInt(document.getElementById('locateQtyInput').value, 10);
+                if (isNaN(taken) || taken < 1 || taken > locateItemData.quantity) {
+                    toast('⚠️ Invalid quantity');
+                    return;
+                }
+
+                var item = locateItemData;
+                var borrower = '';
+                var retDate = '';
+
+                if (item.isReturnable) {
+                    borrower = document.getElementById('borrowerNameInput').value.trim();
+                    retDate = document.getElementById('returnDateInput').value;
+                    if (!borrower || !retDate) { toast('⚠️ Borrower name & return date required'); return; }
+                }
+
+                item.quantity -= taken;
+                if (item.isReturnable) {
+                    item.borrower = borrower;
+                    item.returnDate = retDate;
+                    item.borrowedQty = (Number(item.borrowedQty) || 0) + taken;
+                }
+
+                toast('ðŸ“ Picked: ' + taken + 'x ' + item.name);
+                closeLocateModal();
+                render();
+            };
+
+            window.returnItem = function (id) {
+                var item = items.find(function (i) { return i.id === id; });
+                if (!item || !confirm('Return "' + item.name + '" from ' + item.borrower + '?')) return;
+
+                item.quantity += (item.borrowedQty || 1);
+                item.borrower = '';
+                item.returnDate = '';
+                item.borrowedQty = 0;
+
+                fetch('/inventory', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(item)
+                }).then(function () {
+                    toast('✅ Returned: ' + item.name);
+                    render();
+                });
+            };
+
+
+
+            window.onSearchInput = function (val) {
+                srch = val.trim().toLowerCase();
+                var ac = document.getElementById('ac');
+                if (!srch) {
+                    ac.style.display = 'none';
+                    renderMainPage();
+                    return;
+                }
+
+                var matches = items.filter(function (i) {
+                    return i.name.toLowerCase().indexOf(srch) !== -1 || i.category.toLowerCase().indexOf(srch) !== -1;
+                }).slice(0, 7);
+
+                if (matches.length > 0) {
+                    ac.innerHTML = '';
+                    matches.forEach(function (m) {
+                        var d = document.createElement('div');
+                        d.className = 'ac-item';
+                        d.textContent = m.name + ' — ' + m.shelf + ' ➔ ' + m.box;
+                        d.onclick = function () {
+                            document.getElementById('si').value = m.name;
+                            srch = m.name.toLowerCase();
+                            ac.style.display = 'none';
+                            activeId = m.id;
+                            selectedRackBox = m.boxNum || 1;
+                            document.getElementById('rack-box-select').value = selectedRackBox;
+                            switchPage('main');
+                        };
+                        ac.appendChild(d);
+                    });
+                    ac.style.display = 'block';
+                } else {
+                    ac.style.display = 'none';
+                }
+
+                renderMainPage();
+            };
+
+            document.addEventListener('click', function (e) {
+                if (!document.getElementById('sw').contains(e.target)) {
+                    document.getElementById('ac').style.display = 'none';
+                }
+            });
+
+        })();
+    </script>
+</body>
+
+</html>
