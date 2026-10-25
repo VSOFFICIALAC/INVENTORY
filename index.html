@@ -1032,11 +1032,13 @@
                         <select id="hShelfSelect" onchange="onHShelfChange(this.value)" style="padding:0.3rem 0.6rem; border-radius:8px; border:1px solid var(--border); background:var(--surface); color:var(--text); font-weight:600;"></select>
                     </div>
                     <button class="btn btn-p btn-sm" onclick="openAddShelfModal()">+ Add Shelf</button>
+                    <button class="btn btn-danger btn-sm" onclick="deleteCurrentShelf()">Delete Shelf</button>
                     <div style="display: flex; align-items: center; gap: 0.35rem; background: var(--surface2); padding: 0.3rem 0.6rem; border-radius: 12px; border: 1.5px solid var(--border);">
                         <label style="font-size: 0.82rem; font-weight: 700;">Compartment:</label>
                         <select id="hCompSelect" onchange="onHCompChange(this.value)" style="padding:0.3rem 0.6rem; border-radius:8px; border:1px solid var(--border); background:var(--surface); color:var(--text); font-weight:600;"></select>
                     </div>
                     <button class="btn btn-p btn-sm" onclick="openAddCompModal()">+ Add Compartment</button>
+                    <button class="btn btn-danger btn-sm" id="deleteCompButton" onclick="deleteCurrentComp()">Delete Compartment</button>
                 </div>
             </div>
 
@@ -1326,7 +1328,7 @@ var elemModalType = ''; // 'shelf', 'comp', 'box', 'slot'
                     toast('Layout saved and verified in the existing Google Sheet.');
                     return true;
                 }).catch(function(error) {
-                    toast('Layout not confirmed saved: ' + error.message + ' Keep this page open and retry Save.');
+                    toast('Layout not confirmed saved: ' + error.message + ' Keep this page open and retry the change.');
                     return false;
                 }).finally(function() {
                     structureSaveInProgress = false;
@@ -1424,12 +1426,6 @@ var elemModalType = ''; // 'shelf', 'comp', 'box', 'slot'
                     structRegistry.shelves = [{ name: 'Shelf 1' }];
                 }
                 if (!structRegistry.compartments) structRegistry.compartments = {};
-                if (!structRegistry.compartments['Shelf 1'] || structRegistry.compartments['Shelf 1'].length === 0) {
-                    structRegistry.compartments['Shelf 1'] = [
-                            { name: 'A', x: 0, y: 0, w: 98, h: 46 },
-                            { name: 'B', x: 0, y: 50, w: 98, h: 46 }
-                    ];
-                }
                 if (!structRegistry.boxes) structRegistry.boxes = {};
                 if (!structRegistry.slots) structRegistry.slots = {};
 
@@ -1458,12 +1454,7 @@ var elemModalType = ''; // 'shelf', 'comp', 'box', 'slot'
                             return true;
                         });
 
-                        if (structRegistry.compartments[shKey].length === 0) {
-                            structRegistry.compartments[shKey] = [
-                                { name: 'A', x: 0, y: 0, w: 98, h: 45 },
-                                { name: 'B', x: 0, y: 50, w: 98, h: 45 }
-                            ];
-                        }
+
                     }
                 });
 
@@ -2129,18 +2120,13 @@ var elemModalType = ''; // 'shelf', 'comp', 'box', 'slot'
                     return true;
                 });
 
-                if (rawComps.length === 0) {
-                    rawComps = [
-                        { name: 'A', x: 0, y: 0, w: 98, h: 45 },
-                        { name: 'B', x: 0, y: 50, w: 98, h: 45 }
-                    ];
-                }
                 if (structRegistry && structRegistry.compartments) {
                     structRegistry.compartments[selectedHShelf] = rawComps;
                 }
                 var compObjs = rawComps.map(getCompObj);
                 var activeCompObj = compObjs.find(function(co) { return co.name.toLowerCase() === (selectedHComp || '').toLowerCase(); }) || compObjs[0] || null;
                 selectedHComp = activeCompObj ? activeCompObj.name : null;
+                document.getElementById('deleteCompButton').disabled = !selectedHComp;
 
                 if (hcSelect) {
                     if (compObjs.length === 0) {
@@ -2772,28 +2758,51 @@ var elemModalType = ''; // 'shelf', 'comp', 'box', 'slot'
                 document.getElementById('elemModal').classList.add('open');
             };
 
-            window.deleteCurrentShelf = function() {
-                if (structRegistry.shelves.length <= 1) {
-                    toast('⚠️ At least one shelf must exist');
-                    return;
-                }
-                var count = items.filter(function(i) { return i.shelf.toLowerCase() === selectedHShelf.toLowerCase(); }).length;
-                var msg = 'Delete "' + selectedHShelf + '"?';
-                if (count > 0) msg = '⚠️ Warning: "' + selectedHShelf + '" contains ' + count + ' items! Delete shelf?';
-                if (!confirm(msg)) return;
-
-                var idx = structRegistry.shelves.findIndex(function(sh) {
-                    return (typeof sh === 'string' ? sh : sh.name).toLowerCase() === selectedHShelf.toLowerCase();
+            function saveStructureDeletion(previous, previousSelection) {
+                return saveStructure(true).then(function(saved) {
+                    if (!saved) {
+                        structRegistry = previous;
+                        selectedHShelf = previousSelection.shelf;
+                        selectedHComp = previousSelection.compartment;
+                        selectedHBox = previousSelection.box;
+                        cacheStructure();
+                    }
+                    renderHierarchyPage();
+                    return saved;
                 });
-                if (idx !== -1) structRegistry.shelves.splice(idx, 1);
-                delete structRegistry.compartments[selectedHShelf];
-                var nextSh = getShelfObj(structRegistry.shelves[0]);
-                selectedHShelf = nextSh.name;
-                selectedHComp = 'Compartment A';
+            }
+
+            window.deleteCurrentShelf = function() {
+                if (!structureLoadedFromSheet || structureSaveInProgress) {
+                    toast('Wait for the existing Google Sheet to finish loading or saving.');
+                    return Promise.resolve(false);
+                }
+                if (structRegistry.shelves.length <= 1) {
+                    toast('At least one shelf must exist.');
+                    return Promise.resolve(false);
+                }
+                var shelf = selectedHShelf.toLowerCase();
+                var count = items.filter(function(i) { return i.shelf.toLowerCase() === shelf; }).length;
+                if (count > 0) {
+                    toast('Move the ' + count + ' inventory items to another shelf before deleting this shelf.');
+                    return Promise.resolve(false);
+                }
+                if (!confirm('Delete "' + selectedHShelf + '" and all its compartments, boxes and slots from the Google Sheet?')) return Promise.resolve(false);
+                var previous = JSON.parse(JSON.stringify(structRegistry));
+                var selection = { shelf: selectedHShelf, compartment: selectedHComp, box: selectedHBox };
+                structRegistry.shelves = structRegistry.shelves.filter(function(sh) { return getShelfObj(sh).name.toLowerCase() !== shelf; });
+                Object.keys(structRegistry.compartments).forEach(function(key) {
+                    if (key.toLowerCase() === shelf) delete structRegistry.compartments[key];
+                });
+                ['boxes', 'slots'].forEach(function(type) {
+                    Object.keys(structRegistry[type]).forEach(function(key) {
+                        if (key.toLowerCase().indexOf(shelf + '->') === 0) delete structRegistry[type][key];
+                    });
+                });
+                selectedHShelf = getShelfObj(structRegistry.shelves[0]).name;
+                selectedHComp = null;
                 selectedHBox = null;
-                saveStructure(true);
-                toast('🗑️ Shelf deleted');
-                renderHierarchyPage();
+                return saveStructureDeletion(previous, selection);
             };
 
             function initCanvasResizeHandler() {
@@ -2924,31 +2933,40 @@ var elemModalType = ''; // 'shelf', 'comp', 'box', 'slot'
             };
 
             window.deleteCurrentComp = function() {
-                var comps = structRegistry.compartments[selectedHShelf] || [];
-                if (comps.length === 0) {
-                    toast('⚠️ No compartments exist to delete');
-                    return;
+                if (!structureLoadedFromSheet || structureSaveInProgress) {
+                    toast('Wait for the existing Google Sheet to finish loading or saving.');
+                    return Promise.resolve(false);
                 }
+                if (!selectedHComp) { toast('Select a compartment to delete.'); return Promise.resolve(false); }
+                var shelf = selectedHShelf.toLowerCase();
+                var compartment = cleanCompNameJS(selectedHComp);
                 var count = items.filter(function(i) {
-                    return i.shelf.toLowerCase() === selectedHShelf.toLowerCase() && i.compartment.toLowerCase() === (selectedHComp || '').toLowerCase();
+                    return i.shelf.toLowerCase() === shelf && cleanCompNameJS(i.compartment) === compartment;
                 }).length;
-
-                var msg = 'Delete "' + selectedHComp + '" from ' + selectedHShelf + '?';
-                if (count > 0) msg = '⚠️ Warning: "' + selectedHComp + '" contains ' + count + ' items! Delete compartment?';
-                if (!confirm(msg)) return;
-
-                var idx = comps.findIndex(function(co) {
-                    return (typeof co === 'string' ? co : co.name).toLowerCase() === (selectedHComp || '').toLowerCase();
+                if (count > 0) {
+                    toast('Move the ' + count + ' inventory items to another compartment before deleting this compartment.');
+                    return Promise.resolve(false);
+                }
+                if (!confirm('Delete compartment "' + selectedHComp + '" in "' + selectedHShelf + '" and all its boxes and slots from the Google Sheet?')) return Promise.resolve(false);
+                var previous = JSON.parse(JSON.stringify(structRegistry));
+                var selection = { shelf: selectedHShelf, compartment: selectedHComp, box: selectedHBox };
+                Object.keys(structRegistry.compartments).forEach(function(key) {
+                    if (key.toLowerCase() === shelf) {
+                        structRegistry.compartments[key] = structRegistry.compartments[key].filter(function(co) {
+                            return getCompObj(co).name !== compartment;
+                        });
+                    }
                 });
-                if (idx !== -1) comps.splice(idx, 1);
-                var bKey = (selectedHShelf + '->' + cleanCompNameJS(selectedHComp)).toLowerCase();
-                delete structRegistry.boxes[bKey];
-                var nextCo = comps.length > 0 ? getCompObj(comps[0]) : null;
-                selectedHComp = nextCo ? nextCo.name : null;
+                var branch = shelf + '->' + compartment.toLowerCase();
+                Object.keys(structRegistry.boxes).forEach(function(key) {
+                    if (key.toLowerCase() === branch) delete structRegistry.boxes[key];
+                });
+                Object.keys(structRegistry.slots).forEach(function(key) {
+                    if (key.toLowerCase().indexOf(branch + '->') === 0) delete structRegistry.slots[key];
+                });
+                selectedHComp = null;
                 selectedHBox = null;
-                saveStructure(true);
-                toast('🗑️ Compartment deleted');
-                renderHierarchyPage();
+                return saveStructureDeletion(previous, selection);
             };
 
             window.openEditCompModal = function(cName) {
