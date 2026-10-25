@@ -1005,10 +1005,10 @@
                     <h2>📦 Inventory Items</h2>
                     <div class="inv-act">
                         <span class="cnt" id="cb">0 items</span>
-                        <span class="cnt" id="connStatusPill" style="background:#dcfce7; color:#15803d; border-color:#86efac;">&#9729;&#65039; Google Sheet Connected</span>
+                        <span class="cnt" id="connStatusPill" style="background:#dcfce7; color:#15803d; border-color:#86efac;">&#9729;&#65039; Cloud Connected</span>
                         <button class="btn btn-o btn-sm" onclick="fetchInventory()">&#128260; Refresh</button>
-                        <button class="btn btn-o btn-sm esp-only-btn" style="display:none;" onclick="syncToCloud()" title="Upload local ESP items to Google Sheets">&#9729;&#65039; Sync Cloud (Upload)</button>
-                        <button class="btn btn-o btn-sm esp-only-btn" style="display:none;" onclick="fetchFromCloud()" title="Download Google Sheets items to ESP memory">&#128229; Fetch Cloud (Download)</button>
+                        <button class="btn btn-o btn-sm esp-only-btn" style="display:none;" onclick="syncToCloud()" title="Upload local ESP items to Cloud">&#9729;&#65039; Sync Cloud (Upload)</button>
+                        <button class="btn btn-o btn-sm esp-only-btn" style="display:none;" onclick="fetchFromCloud()" title="Download Cloud items to ESP memory">&#128229; Fetch Cloud (Download)</button>
                         <button class="btn btn-p btn-sm" onclick="openAddModal()">+ Add Item</button>
                     </div>
                 </div>
@@ -1269,7 +1269,7 @@ var elemModalType = ''; // 'shelf', 'comp', 'box', 'slot'
                     return new Promise(function(resolve, reject) {
                         var callback = 'sheetRead_' + (++sheetRequestId);
                         var script = document.createElement('script');
-                        var timer = setTimeout(function() { finish(new Error('Google Sheets request timed out')); }, 20000);
+                        var timer = setTimeout(function() { finish(new Error('Cloud request timed out')); }, 20000);
                         function finish(error, data) {
                             clearTimeout(timer);
                             delete window[callback];
@@ -1277,7 +1277,7 @@ var elemModalType = ''; // 'shelf', 'comp', 'box', 'slot'
                             if (error) reject(error); else resolve(data);
                         }
                         window[callback] = function(data) { finish(null, data); };
-                        script.onerror = function() { finish(new Error('Could not connect to Google Sheets')); };
+                        script.onerror = function() { finish(new Error('Could not connect to Cloud')); };
                         script.src = url + '&callback=' + callback;
                         document.head.appendChild(script);
                     });
@@ -1302,13 +1302,13 @@ var elemModalType = ''; // 'shelf', 'comp', 'box', 'slot'
             function saveStructure(toSheet) {
                 if (!toSheet) { cacheStructure(); return Promise.resolve(true); }
                 if (!structureLoadedFromSheet || structureSaveInProgress) {
-                    toast('Wait for the existing Google Sheet to finish loading or saving.');
+                    toast('Wait for the cloud to finish loading or saving.');
                     return Promise.resolve(false);
                 }
                 structureSaveInProgress = true;
                 var snapshot = JSON.parse(JSON.stringify(structRegistry));
                 var signature = structureSignature(snapshot);
-                showSyncOverlay('Saving layout to the existing Google Sheet. Please wait for confirmation...');
+                showSyncOverlay('Saving layout to the cloud. Please wait for confirmation...');
                 // This existing endpoint changes Structure!A2 only; inventory rows are untouched.
                 return fetch(GOOGLE_SCRIPT_URL, {
                     method: 'POST', mode: 'no-cors',
@@ -1318,14 +1318,14 @@ var elemModalType = ''; // 'shelf', 'comp', 'box', 'slot'
                     function verify(attempts) {
                         return readSheetData().then(function(data) {
                             if (data && data.structure && structureSignature(data.structure) === signature) return data;
-                            if (attempts <= 1) throw new Error('The sheet has not confirmed this layout. Check the Apps Script deployment supports structure saves.');
+                            if (attempts <= 1) throw new Error('The cloud has not confirmed this layout. Check the cloud connection and try saving again.');
                             return new Promise(function(resolve) { setTimeout(resolve, 1200); }).then(function() { return verify(attempts - 1); });
                         });
                     }
                     return verify(3);
                 }).then(function(data) {
                     window.handleGoogleSheetsData(data);
-                    toast('Layout saved and verified in the existing Google Sheet.');
+                    toast('Layout saved and verified in the cloud.');
                     return true;
                 }).catch(function(error) {
                     toast('Layout not confirmed saved: ' + error.message + ' Keep this page open and retry the change.');
@@ -1364,7 +1364,7 @@ var elemModalType = ''; // 'shelf', 'comp', 'box', 'slot'
                 var subBoxStr = String(raw.subBox || raw.subbox || raw.slot || '1');
                 var subBox = parseInt(subBoxStr.replace(/[^0-9]/g, '')) || 1;
 
-                // The Google Sheet is the source of truth for physical location.
+                // The Cloud is the source of truth for physical location.
                 // Never redistribute an item into another box based on its slot
                 // number: this previously caused the apparent random placement.
                 var boxNum = rawBoxNum;
@@ -1408,7 +1408,7 @@ var elemModalType = ''; // 'shelf', 'comp', 'box', 'slot'
                 };
             }
 
-            // Inventory may come from Google Sheets. Escape user-controlled text
+            // Inventory may come from Cloud. Escape user-controlled text
             // before adding it to HTML.
             function escapeHtml(value) {
                 return String(value === undefined || value === null ? '' : value)
@@ -1536,7 +1536,7 @@ var elemModalType = ''; // 'shelf', 'comp', 'box', 'slot'
             window.handleGoogleSheetsData = function(data) {
                 hideSyncOverlay();
                 if (!data || !data.structure || !Array.isArray(data.structure.shelves)) {
-                    toast('The existing Google Sheet did not return a valid structure. Check Structure!A2 and the Apps Script deployment.');
+                    toast('The cloud did not return a valid storage layout. Check the cloud connection and try again.');
                     return;
                 }
                 if (data.structure) {
@@ -1573,7 +1573,7 @@ var elemModalType = ''; // 'shelf', 'comp', 'box', 'slot'
                     try { localStorage.setItem('smartrack_cached_items_v1', JSON.stringify(items)); } catch(e) {}
                     syncItemsToStructure();
                     render();
-                    toast('&#9989; Loaded ' + items.length + ' items from Google Sheets');
+                    toast('&#9989; Loaded ' + items.length + ' items from Cloud');
                 } else {
                     render();
                 }
@@ -1602,7 +1602,7 @@ var elemModalType = ''; // 'shelf', 'comp', 'box', 'slot'
                     return;
                 }
 
-                showSyncOverlay('&#9729;&#65039; Loading inventory from Google Sheets...');
+                showSyncOverlay('&#9729;&#65039; Loading inventory from Cloud...');
                 
                 try {
                     var cachedStr = localStorage.getItem('smartrack_cached_items_v1');
@@ -1619,7 +1619,7 @@ var elemModalType = ''; // 'shelf', 'comp', 'box', 'slot'
                     window.handleGoogleSheetsData(data);
                 }).catch(function(error) {
                     hideSyncOverlay();
-                    toast('Could not fetch the existing Google Sheet: ' + error.message);
+                    toast('Could not fetch the cloud: ' + error.message);
                     render();
                 });
             }
@@ -2774,7 +2774,7 @@ var elemModalType = ''; // 'shelf', 'comp', 'box', 'slot'
 
             window.deleteCurrentShelf = function() {
                 if (!structureLoadedFromSheet || structureSaveInProgress) {
-                    toast('Wait for the existing Google Sheet to finish loading or saving.');
+                    toast('Wait for the cloud to finish loading or saving.');
                     return Promise.resolve(false);
                 }
                 if (structRegistry.shelves.length <= 1) {
@@ -2787,7 +2787,7 @@ var elemModalType = ''; // 'shelf', 'comp', 'box', 'slot'
                     toast('Move the ' + count + ' inventory items to another shelf before deleting this shelf.');
                     return Promise.resolve(false);
                 }
-                if (!confirm('Delete "' + selectedHShelf + '" and all its compartments, boxes and slots from the Google Sheet?')) return Promise.resolve(false);
+                if (!confirm('Delete "' + selectedHShelf + '" and all its compartments, boxes and slots from the Cloud?')) return Promise.resolve(false);
                 var previous = JSON.parse(JSON.stringify(structRegistry));
                 var selection = { shelf: selectedHShelf, compartment: selectedHComp, box: selectedHBox };
                 structRegistry.shelves = structRegistry.shelves.filter(function(sh) { return getShelfObj(sh).name.toLowerCase() !== shelf; });
@@ -2934,7 +2934,7 @@ var elemModalType = ''; // 'shelf', 'comp', 'box', 'slot'
 
             window.deleteCurrentComp = function() {
                 if (!structureLoadedFromSheet || structureSaveInProgress) {
-                    toast('Wait for the existing Google Sheet to finish loading or saving.');
+                    toast('Wait for the cloud to finish loading or saving.');
                     return Promise.resolve(false);
                 }
                 if (!selectedHComp) { toast('Select a compartment to delete.'); return Promise.resolve(false); }
@@ -2947,7 +2947,7 @@ var elemModalType = ''; // 'shelf', 'comp', 'box', 'slot'
                     toast('Move the ' + count + ' inventory items to another compartment before deleting this compartment.');
                     return Promise.resolve(false);
                 }
-                if (!confirm('Delete compartment "' + selectedHComp + '" in "' + selectedHShelf + '" and all its boxes and slots from the Google Sheet?')) return Promise.resolve(false);
+                if (!confirm('Delete compartment "' + selectedHComp + '" in "' + selectedHShelf + '" and all its boxes and slots from the Cloud?')) return Promise.resolve(false);
                 var previous = JSON.parse(JSON.stringify(structRegistry));
                 var selection = { shelf: selectedHShelf, compartment: selectedHComp, box: selectedHBox };
                 Object.keys(structRegistry.compartments).forEach(function(key) {
@@ -3138,7 +3138,7 @@ var elemModalType = ''; // 'shelf', 'comp', 'box', 'slot'
             };
 
             window.submitElemModal = function() {
-                if (!structureLoadedFromSheet || structureSaveInProgress) { toast('Wait for the existing Google Sheet to finish loading or saving.'); return Promise.resolve(false); }
+                if (!structureLoadedFromSheet || structureSaveInProgress) { toast('Wait for the cloud to finish loading or saving.'); return Promise.resolve(false); }
                 var val = document.getElementById('elemNameInput').value.trim();
                 if (!val) { toast('⚠️ Please enter a name'); return; }
 
@@ -3349,7 +3349,7 @@ var elemModalType = ''; // 'shelf', 'comp', 'box', 'slot'
             };
 
             window.triggerSync = function () {
-                toast('☁️ Syncing inventory to Google Sheets...');
+                toast('☁️ Syncing inventory to Cloud...');
                 fetch('/sync', { method: 'POST' })
                     .then(function (r) { return r.text(); })
                     .then(function (msg) { toast('✅ ' + msg); })
@@ -3357,7 +3357,7 @@ var elemModalType = ''; // 'shelf', 'comp', 'box', 'slot'
             };
 
             window.triggerFetch = function() {
-                showSyncOverlay('📥 Triggering fetch from Google Sheets...<br><br>' +
+                showSyncOverlay('📥 Triggering fetch from Cloud...<br><br>' +
                                 '<span style="font-size:0.9rem; font-weight:normal; opacity:0.85;">' +
                                 'The ESP8266 is now connecting to your Wi-Fi router. ' +
                                 'Your device will disconnect from the ESP8266 Access Point network temporarily.<br><br>' +
@@ -3453,14 +3453,14 @@ var elemModalType = ''; // 'shelf', 'comp', 'box', 'slot'
                     col: isSmart ? calcCol : 0
                 };
 
-                toast('⏳ Saving item to Google Sheets...');
+                toast('⏳ Saving item to Cloud...');
                 fetch(GOOGLE_SCRIPT_URL, {
                     method: 'POST',
                     mode: 'no-cors',
                     headers: { 'Content-Type': 'text/plain' },
                     body: JSON.stringify(payload)
                 }).then(function () {
-                    toast('✅ Item saved to Google Sheets');
+                    toast('✅ Item saved to Cloud');
                     closeAddEditModal();
                     setTimeout(fetchInventory, 1200);
                 }).catch(function() {
@@ -3475,10 +3475,10 @@ var elemModalType = ''; // 'shelf', 'comp', 'box', 'slot'
             location.protocol !== 'file:';
 
             window.syncToCloud = function() {
-                // Browser POSTs directly to Google Sheets -- no ESP memory limit.
+                // Browser POSTs directly to Cloud -- no ESP memory limit.
                 // Works for 400+ items. ESP /sync endpoint is no longer used.
                 var itemCount = items.length;
-                showSyncOverlay('☁️ Syncing ' + itemCount + ' items to Google Sheets...\nPlease keep this page open (~10–20 seconds).');
+                showSyncOverlay('☁️ Syncing ' + itemCount + ' items to Cloud...\nPlease keep this page open (~10–20 seconds).');
 
                 var minItems = items.map(function(item) {
                     return {
@@ -3505,7 +3505,7 @@ var elemModalType = ''; // 'shelf', 'comp', 'box', 'slot'
                 .then(function(data) {
                     hideSyncOverlay();
                     if (data && data.status === 'success') {
-                        toast('✅ Synced ' + itemCount + ' items to Google Sheets!');
+                        toast('✅ Synced ' + itemCount + ' items to Cloud!');
                     } else {
                         toast('⚠️ Sync: ' + JSON.stringify(data));
                     }
@@ -3517,7 +3517,7 @@ var elemModalType = ''; // 'shelf', 'comp', 'box', 'slot'
             };
 
             window.fetchFromCloud = function() {
-                showSyncOverlay('📥 Triggering ESP8266 Cloud Fetch...\nThe ESP8266 will connect to Wi-Fi to fetch from Google Sheets (~20-30 seconds).');
+                showSyncOverlay('📥 Triggering ESP8266 Cloud Fetch...\nThe ESP8266 will connect to Wi-Fi to fetch from Cloud (~20-30 seconds).');
                 fetch('/fetch')
                     .then(function(r) { return r.text(); })
                     .then(function(msg) {
