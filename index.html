@@ -1031,11 +1031,14 @@
                         <label style="font-size: 0.82rem; font-weight: 700;">Shelf:</label>
                         <select id="hShelfSelect" onchange="onHShelfChange(this.value)" style="padding:0.3rem 0.6rem; border-radius:8px; border:1px solid var(--border); background:var(--surface); color:var(--text); font-weight:600;"></select>
                     </div>
+                    <button class="btn btn-p btn-sm" onclick="openAddShelfModal()">+ Add Shelf</button>
                     <div style="display: flex; align-items: center; gap: 0.35rem; background: var(--surface2); padding: 0.3rem 0.6rem; border-radius: 12px; border: 1.5px solid var(--border);">
                         <label style="font-size: 0.82rem; font-weight: 700;">Compartment:</label>
                         <select id="hCompSelect" onchange="onHCompChange(this.value)" style="padding:0.3rem 0.6rem; border-radius:8px; border:1px solid var(--border); background:var(--surface); color:var(--text); font-weight:600;"></select>
                     </div>
+                    <button class="btn btn-p btn-sm" onclick="openAddCompModal()">+ Add Compartment</button>
                 </div>
+            </div>
 
             <!-- Dynamic Content Area -->
             <div id="hierarchyContent"></div>
@@ -1045,6 +1048,7 @@
 
     <script>
         (function () {
+            var GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx5ThwS5c4_pBSocc0TUJWiPAgoQv0nGwB11OkD-PwcGPrCyDMZyzLKE4XORYNtrpWouw/exec';
             var items = [];
             var activeId = null;
             var srch = '';
@@ -1236,36 +1240,98 @@ var elemModalType = ''; // 'shelf', 'comp', 'box', 'slot'
                 };
             }
 
-            // Load saved structure registry if available
-            try {
-                var savedStruct = localStorage.getItem('smartrack_structure_v5');
-                if (savedStruct) {
-                    var parsed = JSON.parse(savedStruct);
-                    var isLegacy = false;
-                    if (parsed && parsed.boxes) {
-                        Object.keys(parsed.boxes).forEach(function(k) {
-                            var list = parsed.boxes[k] || [];
-                            list.forEach(function(b) {
-                                if (b.w === 22 || b.w === 0 || !b.w) {
-                                    isLegacy = true;
-                                }
-                            });
+            var structureLoadedFromSheet = false;
+            var structureSaveInProgress = false;
+            var sheetRequestId = 0;
+
+            function normalizeStructure(structure) {
+                var normalized = { shelves: structure.shelves || [], compartments: structure.compartments || {}, boxes: {}, slots: {} };
+                ['boxes', 'slots'].forEach(function(type) {
+                    Object.keys(structure[type] || {}).forEach(function(key) {
+                        normalized[type][key.toLowerCase()] = structure[type][key];
+                    });
+                });
+                return normalized;
+            }
+
+            function cacheStructure() {
+                try { localStorage.setItem('smartrack_structure_v5', JSON.stringify(structRegistry)); } catch(e) {}
+            }
+
+            function readSheetData() {
+                var url = GOOGLE_SCRIPT_URL + '?t=' + Date.now();
+                return fetch(url, { mode: 'cors', cache: 'no-store' }).then(function(response) {
+                    if (!response.ok) throw new Error('HTTP ' + response.status);
+                    return response.json();
+                }).catch(function() {
+                    return new Promise(function(resolve, reject) {
+                        var callback = 'sheetRead_' + (++sheetRequestId);
+                        var script = document.createElement('script');
+                        var timer = setTimeout(function() { finish(new Error('Google Sheets request timed out')); }, 20000);
+                        function finish(error, data) {
+                            clearTimeout(timer);
+                            delete window[callback];
+                            script.remove();
+                            if (error) reject(error); else resolve(data);
+                        }
+                        window[callback] = function(data) { finish(null, data); };
+                        script.onerror = function() { finish(new Error('Could not connect to Google Sheets')); };
+                        script.src = url + '&callback=' + callback;
+                        document.head.appendChild(script);
+                    });
+                });
+            }
+
+            function structureSignature(structure) {
+                function stable(value) {
+                    if (Array.isArray(value)) return value.map(stable).sort(function(a, b) {
+                        return JSON.stringify(a).localeCompare(JSON.stringify(b));
+                    });
+                    if (value && typeof value === 'object') {
+                        var result = {};
+                        Object.keys(value).sort().forEach(function(key) { result[key] = stable(value[key]); });
+                        return result;
+                    }
+                    return value;
+                }
+                return JSON.stringify(stable(normalizeStructure(structure)));
+            }
+
+            function saveStructure(toSheet) {
+                if (!toSheet) { cacheStructure(); return Promise.resolve(true); }
+                if (!structureLoadedFromSheet || structureSaveInProgress) {
+                    toast('Wait for the existing Google Sheet to finish loading or saving.');
+                    return Promise.resolve(false);
+                }
+                structureSaveInProgress = true;
+                var snapshot = JSON.parse(JSON.stringify(structRegistry));
+                var signature = structureSignature(snapshot);
+                showSyncOverlay('Saving layout to the existing Google Sheet. Please wait for confirmation...');
+                // This existing endpoint changes Structure!A2 only; inventory rows are untouched.
+                return fetch(GOOGLE_SCRIPT_URL, {
+                    method: 'POST', mode: 'no-cors',
+                    headers: { 'Content-Type': 'text/plain' },
+                    body: JSON.stringify({ type: 'structure', data: snapshot })
+                }).then(function() {
+                    function verify(attempts) {
+                        return readSheetData().then(function(data) {
+                            if (data && data.structure && structureSignature(data.structure) === signature) return data;
+                            if (attempts <= 1) throw new Error('The sheet has not confirmed this layout. Check the Apps Script deployment supports structure saves.');
+                            return new Promise(function(resolve) { setTimeout(resolve, 1200); }).then(function() { return verify(attempts - 1); });
                         });
                     }
-                    if (isLegacy) {
-                        localStorage.removeItem('smartrack_structure_v5');
-                    } else {
-                        structRegistry = parsed;
-                    }
-                }
-            } catch(e) {}
-
-
-
-            function saveStructure() {
-                try {
-                    localStorage.setItem('smartrack_structure_v5', JSON.stringify(structRegistry));
-                } catch(e) {}
+                    return verify(3);
+                }).then(function(data) {
+                    window.handleGoogleSheetsData(data);
+                    toast('Layout saved and verified in the existing Google Sheet.');
+                    return true;
+                }).catch(function(error) {
+                    toast('Layout not confirmed saved: ' + error.message + ' Keep this page open and retry Save.');
+                    return false;
+                }).finally(function() {
+                    structureSaveInProgress = false;
+                    hideSyncOverlay();
+                });
             }
 
             var dark = localStorage.getItem('smartrack_dark') === 'true' ||
@@ -1357,13 +1423,12 @@ var elemModalType = ''; // 'shelf', 'comp', 'box', 'slot'
                 if (!structRegistry.shelves || structRegistry.shelves.length === 0) {
                     structRegistry.shelves = [{ name: 'Shelf 1' }];
                 }
-                if (!structRegistry.compartments || !structRegistry.compartments['Shelf 1'] || structRegistry.compartments['Shelf 1'].length === 0) {
-                    structRegistry.compartments = {
-                        'Shelf 1': [
+                if (!structRegistry.compartments) structRegistry.compartments = {};
+                if (!structRegistry.compartments['Shelf 1'] || structRegistry.compartments['Shelf 1'].length === 0) {
+                    structRegistry.compartments['Shelf 1'] = [
                             { name: 'A', x: 0, y: 0, w: 98, h: 46 },
                             { name: 'B', x: 0, y: 50, w: 98, h: 46 }
-                        ]
-                    };
+                    ];
                 }
                 if (!structRegistry.boxes) structRegistry.boxes = {};
                 if (!structRegistry.slots) structRegistry.slots = {};
@@ -1475,11 +1540,14 @@ var elemModalType = ''; // 'shelf', 'comp', 'box', 'slot'
                 }
             }
 
-            var GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx5ThwS5c4_pBSocc0TUJWiPAgoQv0nGwB11OkD-PwcGPrCyDMZyzLKE4XORYNtrpWouw/exec';
+
 
             window.handleGoogleSheetsData = function(data) {
                 hideSyncOverlay();
-                if (!data) return;
+                if (!data || !data.structure || !Array.isArray(data.structure.shelves)) {
+                    toast('The existing Google Sheet did not return a valid structure. Check Structure!A2 and the Apps Script deployment.');
+                    return;
+                }
                 if (data.structure) {
                     var savedStructure = data.structure;
                     if (savedStructure.compartments) {
@@ -1503,56 +1571,13 @@ var elemModalType = ''; // 'shelf', 'comp', 'box', 'slot'
                         });
                         savedStructure.slots = normSlots;
                     }
-                    structRegistry = savedStructure;
-                    try { localStorage.setItem('smartrack_structure_v5', JSON.stringify(structRegistry)); } catch(e) {}
+                    structRegistry = normalizeStructure(savedStructure);
+                    structureLoadedFromSheet = true;
+                    saveStructure();
                 }
                 
                 var rawItems = Array.isArray(data) ? data : (data.items || []);
-                if (rawItems.length > 0) {
-                    items = rawItems.map(normalizeItem);
-                    try { localStorage.setItem('smartrack_cached_items_v1', JSON.stringify(items)); } catch(e) {}
-                    syncItemsToStructure();
-                    render();
-                    toast('&#9989; Loaded ' + items.length + ' items from Google Sheets');
-                } else {
-                    render();
-                }
-            };
-
-            var GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx5ThwS5c4_pBSocc0TUJWiPAgoQv0nGwB11OkD-PwcGPrCyDMZyzLKE4XORYNtrpWouw/exec';
-
-            window.handleGoogleSheetsData = function(data) {
-                hideSyncOverlay();
-                if (!data) return;
-                if (data.structure) {
-                    var savedStructure = data.structure;
-                    if (savedStructure.compartments) {
-                        var normComps = {};
-                        Object.keys(savedStructure.compartments).forEach(function(k) {
-                            normComps[k] = savedStructure.compartments[k];
-                        });
-                        savedStructure.compartments = normComps;
-                    }
-                    if (savedStructure.boxes) {
-                        var normBoxes = {};
-                        Object.keys(savedStructure.boxes).forEach(function(k) {
-                            normBoxes[k.toLowerCase()] = savedStructure.boxes[k];
-                        });
-                        savedStructure.boxes = normBoxes;
-                    }
-                    if (savedStructure.slots) {
-                        var normSlots = {};
-                        Object.keys(savedStructure.slots).forEach(function(k) {
-                            normSlots[k.toLowerCase()] = savedStructure.slots[k];
-                        });
-                        savedStructure.slots = normSlots;
-                    }
-                    structRegistry = savedStructure;
-                    try { localStorage.setItem('smartrack_structure_v5', JSON.stringify(structRegistry)); } catch(e) {}
-                }
-                
-                var rawItems = Array.isArray(data) ? data : (data.items || []);
-                if (rawItems.length > 0) {
+                if (Array.isArray(rawItems)) {
                     items = rawItems.map(normalizeItem);
                     try { localStorage.setItem('smartrack_cached_items_v1', JSON.stringify(items)); } catch(e) {}
                     syncItemsToStructure();
@@ -1564,6 +1589,7 @@ var elemModalType = ''; // 'shelf', 'comp', 'box', 'slot'
             };
 
             function fetchInventory() {
+                if (structureSaveInProgress) return;
                 if (typeof isESP !== 'undefined' && isESP) {
                     showSyncOverlay('📦 Loading items from ESP8266 Local Memory...');
                     fetch('/inventory')
@@ -1585,7 +1611,7 @@ var elemModalType = ''; // 'shelf', 'comp', 'box', 'slot'
                     return;
                 }
 
-                showSyncOverlay('&#9729;&#65039; Loading inventory from Cloud ☁︎ ');
+                showSyncOverlay('&#9729;&#65039; Loading inventory from Google Sheets...');
                 
                 try {
                     var cachedStr = localStorage.getItem('smartrack_cached_items_v1');
@@ -1598,30 +1624,13 @@ var elemModalType = ''; // 'shelf', 'comp', 'box', 'slot'
                     }
                 } catch(e) {}
 
-                fetch(GOOGLE_SCRIPT_URL, { mode: 'cors' })
-                    .then(function (r) {
-                        if (!r.ok) throw new Error('HTTP error ' + r.status);
-                        return r.json();
-                    })
-                    .then(function (data) {
-                        window.handleGoogleSheetsData(data);
-                    })
-                    .catch(function (err) {
-                        console.warn('CORS fetch failed, trying JSONP script tag injection...', err);
-                        var scriptId = 'jsonp_script_fetch';
-                        var oldScript = document.getElementById(scriptId);
-                        if (oldScript) oldScript.remove();
-
-                        var script = document.createElement('script');
-                        script.id = scriptId;
-                        script.src = GOOGLE_SCRIPT_URL + (GOOGLE_SCRIPT_URL.indexOf('?') === -1 ? '?' : '&') + 'callback=handleGoogleSheetsData&t=' + Date.now();
-                        script.onerror = function() {
-                            hideSyncOverlay();
-                            toast('&#9888;&#65039; Could not connect to Google Sheets. Displaying cached items.');
-                            render();
-                        };
-                        document.head.appendChild(script);
-                    });
+                return readSheetData().then(function(data) {
+                    window.handleGoogleSheetsData(data);
+                }).catch(function(error) {
+                    hideSyncOverlay();
+                    toast('Could not fetch the existing Google Sheet: ' + error.message);
+                    render();
+                });
             }
 
             function showSyncOverlay(msg) {
@@ -2235,7 +2244,7 @@ var elemModalType = ''; // 'shelf', 'comp', 'box', 'slot'
                         '<span style="font-size:0.75rem; color:var(--text2); font-weight:600;">Containers inside selected location</span>' +
                         '</div>' +
                         '<div style="display:flex; gap:0.4rem;">' +
-                        (selectedHComp ? '' : '') +
+                        (selectedHComp ? '<button class="btn btn-p btn-sm" onclick="openAddBoxModal()">+ Add Box</button>' : '') +
                         '' +
                         '</div>' +
                         '</div>';
@@ -2388,7 +2397,7 @@ var elemModalType = ''; // 'shelf', 'comp', 'box', 'slot'
                         '<span class="dim-badge" style="font-size:0.82rem;">📐 Box Canvas: ' + activeBoxObj.w + ' × ' + activeBoxObj.l + ' cm (' + totalBoxArea + ' cm²)</span>' +
                         '</div>' +
                         '<div style="display:flex; gap:0.5rem;">' +
-                        '' +
+                        '<button class="btn btn-p btn-sm" onclick="openAddSlotModal()">+ Add Slot</button>' +
                         '</div></div>';
 
                     // Instruction Banner
@@ -2748,11 +2757,17 @@ var elemModalType = ''; // 'shelf', 'comp', 'box', 'slot'
             // Structure Modification Actions
             window.openAddShelfModal = function() {
                 elemModalType = 'shelf';
+                pendingDrawnSlotCoords = null;
                 document.getElementById('elemModalTitle').textContent = 'Add New Shelf';
                 document.getElementById('elemModalLabel').textContent = 'Shelf Name';
-                document.getElementById('elemNameInput').value = 'Shelf ' + (structRegistry.shelves.length + 1);
+                var nextNumber = 1;
+                while (structRegistry.shelves.some(function(shelf) {
+                    return getShelfObj(shelf).name.toLowerCase() === 'shelf ' + nextNumber;
+                })) nextNumber++;
+                document.getElementById('elemNameInput').value = 'Shelf ' + nextNumber;
                 document.getElementById('dimWrap').style.display = 'none';
                 document.getElementById('elemShapeWrap').style.display = 'none';
+                document.getElementById('elemGridPosWrap').style.display = 'none';
                 document.getElementById('dimCalcText').style.display = 'none';
                 document.getElementById('elemModal').classList.add('open');
             };
@@ -2776,7 +2791,7 @@ var elemModalType = ''; // 'shelf', 'comp', 'box', 'slot'
                 selectedHShelf = nextSh.name;
                 selectedHComp = 'Compartment A';
                 selectedHBox = null;
-                saveStructure();
+                saveStructure(true);
                 toast('🗑️ Shelf deleted');
                 renderHierarchyPage();
             };
@@ -2896,7 +2911,16 @@ var elemModalType = ''; // 'shelf', 'comp', 'box', 'slot'
 
             window.openAddCompModal = function() {
                 pendingDrawnSlotCoords = { x: 5, y: 5, w: 30, h: 65 };
-                openAddDrawnCompModal(pendingDrawnSlotCoords);
+                window.openAddDrawnCompModal(pendingDrawnSlotCoords);
+                document.getElementById('elemModalTitle').textContent = 'Add Compartment';
+                var comps = structRegistry.compartments[selectedHShelf] || [];
+                var nextIndex = 0;
+                var nextName;
+                do {
+                    nextName = nextIndex < 26 ? String.fromCharCode(65 + nextIndex) : 'Extra ' + (nextIndex + 1);
+                    nextIndex++;
+                } while (comps.some(function(c) { return getCompObj(c).name === nextName; }));
+                document.getElementById('elemNameInput').value = nextName;
             };
 
             window.deleteCurrentComp = function() {
@@ -2922,7 +2946,7 @@ var elemModalType = ''; // 'shelf', 'comp', 'box', 'slot'
                 var nextCo = comps.length > 0 ? getCompObj(comps[0]) : null;
                 selectedHComp = nextCo ? nextCo.name : null;
                 selectedHBox = null;
-                saveStructure();
+                saveStructure(true);
                 toast('🗑️ Compartment deleted');
                 renderHierarchyPage();
             };
@@ -2959,7 +2983,7 @@ var elemModalType = ''; // 'shelf', 'comp', 'box', 'slot'
                 });
 
                 selectedHComp = newCompName;
-                saveStructure();
+                saveStructure(true);
                 toast('✏️ Compartment updated to "' + newCompName + '"');
                 renderHierarchyPage();
             };
@@ -3000,7 +3024,7 @@ var elemModalType = ''; // 'shelf', 'comp', 'box', 'slot'
                     }
                 });
 
-                saveStructure();
+                saveStructure(true);
                 toast('📦 Assigned "' + selectedBox + '" to ' + selectedHComp);
                 renderHierarchyPage();
             };
@@ -3040,14 +3064,23 @@ var elemModalType = ''; // 'shelf', 'comp', 'box', 'slot'
                 if (idx !== -1) currentBoxes.splice(idx, 1);
                 var sKey = (selectedHShelf + '->' + cleanCompNameJS(selectedHComp) + '->' + bName).toLowerCase();
                 delete structRegistry.slots[sKey];
-                saveStructure();
+                saveStructure(true);
                 toast('🗑️ Box deleted');
                 renderHierarchyPage();
             };
 
             window.openAddSlotModal = function() {
+                if (!selectedHBox) { toast('Select a box before adding a slot'); return; }
                 pendingDrawnSlotCoords = { x: 0, y: 0, w: 10, l: 10 };
                 openAddDrawnSlotModal(pendingDrawnSlotCoords);
+                document.getElementById('elemModalTitle').textContent = 'Add Slot';
+                document.getElementById('elemShapeWrap').style.display = 'none';
+                document.getElementById('elemGridPosWrap').style.display = 'none';
+                var sKey = (selectedHShelf + '->' + cleanCompNameJS(selectedHComp) + '->' + selectedHBox).toLowerCase();
+                var slots = structRegistry.slots[sKey] || [];
+                var nextNumber = 1;
+                while (slots.some(function(s) { return getSlotObj(s).name.toLowerCase() === 'slot ' + nextNumber; })) nextNumber++;
+                document.getElementById('elemNameInput').value = 'Slot ' + nextNumber;
             };
 
             window.deleteSlot = function(sName) {
@@ -3068,7 +3101,7 @@ var elemModalType = ''; // 'shelf', 'comp', 'box', 'slot'
                     return (typeof s === 'string' ? s : s.name).toLowerCase() === sName.toLowerCase();
                 });
                 if (idx !== -1) currentSlots.splice(idx, 1);
-                saveStructure();
+                saveStructure(true);
                 toast('🗑️ Slot deleted');
                 renderHierarchyPage();
             };
@@ -3087,6 +3120,7 @@ var elemModalType = ''; // 'shelf', 'comp', 'box', 'slot'
             };
 
             window.submitElemModal = function() {
+                if (!structureLoadedFromSheet || structureSaveInProgress) { toast('Wait for the existing Google Sheet to finish loading or saving.'); return Promise.resolve(false); }
                 var val = document.getElementById('elemNameInput').value.trim();
                 if (!val) { toast('⚠️ Please enter a name'); return; }
 
@@ -3164,9 +3198,11 @@ var elemModalType = ''; // 'shelf', 'comp', 'box', 'slot'
                     }
                 }
 
-                saveStructure();
-                closeElemModal();
-                renderHierarchyPage();
+                return saveStructure(true).then(function(saved) {
+                    if (saved) closeElemModal();
+                    renderHierarchyPage();
+                    return saved;
+                });
             };
 
             // Dynamic Form Location Population (Add/Edit Item Modal)
